@@ -34,7 +34,7 @@ public class ProductService {
 
     //Procura um produto pelo id e id da loja
     public Optional<Product> findProductByIdAndStoreId(Long id, Long storeId) {
-        return productRepository.findByIdAndStoreID(id, storeId);
+        return productRepository.findByIdAndStoreId(id, storeId);
     }
 
     //Salva um produto
@@ -51,6 +51,6 @@ public class ProductService {
     }
     //Metodo para verificar se o produto existe pelo id e o id da loja
     public boolean productExistsByIdAndStoreId(Long id, Long storeId) {
-        return productRepository.findByIdAndStoreID(id, storeId).isPresent();
+        return productRepository.findByIdAndStoreId(id, storeId).isPresent();
     }
 }

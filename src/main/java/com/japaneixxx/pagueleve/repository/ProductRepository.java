@@ -14,6 +14,6 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     List<Product> findByStoreId(Long storeId);
 
     //Metodo para procurar um produto pelo ID e ID da loja
-    Optional<Product> findByIdAndStoreID(Long id, Long storeId);
+    Optional<Product> findByIdAndStoreId(Long id, Long storeId);
 
 }

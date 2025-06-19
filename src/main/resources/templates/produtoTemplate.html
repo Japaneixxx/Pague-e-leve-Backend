@@ -6,8 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pague e leve</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet"
-          integrity="sha384-4Q6Gf2aSP4eDXB8Miphtr37CMZZQ5oXLH2yaXMJ2w8e2ZtHTl7GptT4jmndRuHDT" crossorigin="anonymous">
+    <link rel="stylesheet" href="/reset.css"> <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet"
+                                                    integrity="sha384-4Q6Gf2aSP4eDXB8Miphtr37CMZZQ5oXLH2yaXMJ2w8e2ZtHTl7GptT4jmndRuHDT" crossorigin="anonymous">
 </head>
 
 <style>
@@ -29,7 +29,7 @@
 <div class="position-absolute top-50 start-50 translate-middle">
     <div class="card rounded-4 " style="width: 20rem; height: auto;">
         <div class="card-header"></div>
-        <img th:src="${product.imageUrl}" class="card-img-top" th:alt="${product.name}" alt="Imagem do Produto">
+        <img th:src="${product.imageUrl}" class="card-img-top" th:alt="${product.name}" alt="...">
         <div class="card-body">
             <h5 class="card-title" id="productName" th:text="${product.name}">Nome Produto</h5>
 
@@ -43,7 +43,10 @@
             <a href="#" class="btn btn-dark rounded-pill px-1 py-0" id="plus"><i class="bi bi-plus"></i></a>
             <span class="px-1"></span>
             <a href="#" id="checkout" class="btn btn-dark rounded-4 px-3 "
-               th:attr="data-product-Id=${product.id}, data-product-Name=${product.name}, data-product-Price=${#numbers.formatDecimal(product.price, 0, 'POINT', 2, 'COMMA')}">
+               th:attr="data-product-Id=${product.id},
+                             data-product-Name=${product.name},
+                             data-product-Price=${#numbers.formatDecimal(product.price, 0, 'POINT', 2, 'COMMA')},
+                             data-product-Store-Id=${product.store.id}">
                 <i class="bi bi-check-lg"></i>
             </a>
         </div>
@@ -61,6 +64,7 @@
         const checkoutButton = document.getElementById('checkout');
         const plusButton = document.getElementById('plus');
         const minusButton = document.getElementById('minus');
+        const cancelButton = document.getElementById('cancelButton'); // NOVO: Referência ao botão Cancelar
 
         // --- Validações de Elementos (para depuração) ---
         if (!productNameElement) console.error('Erro: Elemento com ID "productName" não encontrado.');
@@ -69,6 +73,7 @@
         if (!checkoutButton) console.error('Erro: Botão com ID "checkout" não encontrado. A funcionalidade de inicialização e adição ao carrinho não funcionará.');
         if (!plusButton) console.error('Erro: Botão com ID "plus" não encontrado.');
         if (!minusButton) console.error('Erro: Botão com ID "minus" não encontrado.');
+        if (!cancelButton) console.error('Erro: Botão com ID "cancelButton" não encontrado.'); // Validação para Cancelar
 
         // --- Parte 2: Controle de Quantidade (Botões Plus/Minus) ---
         let currentQuantity = 1;
@@ -110,25 +115,34 @@
                 const productId = clickedButton.dataset.productId;
                 const productName = clickedButton.dataset.productName;
                 const productPriceRaw = clickedButton.dataset.productPrice;
+                const productStoreId = clickedButton.dataset.productStoreId; // OK: Captura o StoreId
 
                 if (!productPriceRaw) {
                     console.error('Erro: "data-product-price" não encontrado no botão de checkout. Não é possível adicionar o produto ao carrinho.');
                     alert('Erro: O preço do produto não pôde ser lido. Por favor, recarregue a página ou verifique os dados do produto.');
                     return;
                 }
+                // OK: Verifica se o storeId está disponível
+                if (!productStoreId) {
+                    console.error('Erro: "data-product-store-id" não encontrado no botão de checkout. Não é possível adicionar o produto ao carrinho sem o ID da loja.');
+                    alert('Erro: O ID da loja não pôde ser lido. Por favor, recarregue a página.');
+                    return;
+                }
 
                 const productPrice = parseFloat(productPriceRaw.replace(',', '.'));
-
                 const quantityToAdd = parseInt(quantityElement.textContent);
 
                 const product = {
                     id: productId,
                     name: productName,
                     price: productPrice,
-                    quantity: quantityToAdd
+                    quantity: quantityToAdd,
+                    storeId: productStoreId // Inclui o storeId no objeto produto
                 };
 
-                let cart = sessionStorage.getItem('cartItems');
+                // OK: CHAVE DO CARRINHO É ESPECÍFICA DA LOJA
+                const cartKey = `cartItems_${productStoreId}`;
+                let cart = sessionStorage.getItem(cartKey);
                 cart = cart ? JSON.parse(cart) : [];
 
                 const existingProductIndex = cart.findIndex(item => item.id === product.id);
@@ -141,21 +155,20 @@
                     console.log(`Produto "${product.name}" adicionado ao carrinho com quantidade ${quantityToAdd}.`);
                 }
 
-                sessionStorage.setItem('cartItems', JSON.stringify(cart));
+                sessionStorage.setItem(cartKey, JSON.stringify(cart)); // OK: Salva com a nova chave
 
-                console.log('Carrinho atual no sessionStorage:', JSON.parse(sessionStorage.getItem('cartItems')));
-                alert(`"${product.name}" (${quantityToAdd}x) adicionado ao carrinho!`);
+                console.log(`Carrinho atual da loja ${productStoreId} no sessionStorage:`, JSON.parse(sessionStorage.getItem(cartKey)));
+                alert(`"${product.name}" (${quantityToAdd}x) adicionado ao carrinho da loja ${productStoreId}!`);
             });
         } else {
             console.error('Não foi possível configurar o listener de clique para o botão "checkout" ou o elemento de quantidade.');
         }
 
         // --- Parte 4: Botão Cancelar (Voltar para a página anterior) ---
-        const cancelButton = document.getElementById('cancelButton');
         if (cancelButton) {
             cancelButton.addEventListener('click', (event) => {
                 event.preventDefault(); // Impede o comportamento padrão do link
-                window.history.back(); // Volta para a página anterior no histórico
+                window.history.back(); // Volta para a página anterior no histórico do navegador
                 console.log('Navegando de volta para a página anterior.');
             });
         } else {

@@ -10,11 +10,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import java.util.Optional;
 
-// Importações removidas se não forem mais usadas (ObjectMapper, JsonNode)
-// import com.fasterxml.jackson.databind.ObjectMapper;
-// import com.fasterxml.jackson.databind.JsonNode;
-
-
 @SpringBootApplication
 public class PagueleveApplication {
 
@@ -25,8 +20,15 @@ public class PagueleveApplication {
 	@Bean
 	public CommandLineRunner loadData(ProductRepository productRepository, StoreRepository storeRepository) {
 		return (args) -> {
-			String storeName1 = "Sacolão Lisboa";
-			String storeName2 = "Minimercado da Esquina";
+			// *** Limpeza explícita para garantir um ambiente de desenvolvimento limpo ***
+			// Remova estas linhas em produção ou quando usar ferramentas de migração de DB (Flyway/Liquibase)
+			System.out.println("Limpando tabelas para garantir inserção de dados de exemplo...");
+			productRepository.deleteAll(); // Limpa todos os produtos
+			storeRepository.deleteAll();   // Limpa todas as lojas
+
+
+			String storeName1 = "Sacolão Lisboa - Loja 1";
+			String storeName2 = "Minimercado da Esquina - Loja 2";
 
 			Store store1;
 			Store store2;
@@ -55,7 +57,7 @@ public class PagueleveApplication {
 				System.out.println("Loja '" + storeName2 + "' criada com ID: " + store2.getId());
 			}
 
-			// Bloco para inserir produtos
+			// Bloco para inserir produtos, apenas se a tabela de produtos estiver vazia
 			if (productRepository.count() == 0) {
 				System.out.println("Adicionando produtos de exemplo ao banco de dados...");
 
@@ -79,74 +81,72 @@ public class PagueleveApplication {
 				product2.setHighlighted(false);
 				productRepository.save(product2);
 
-				// Produto 3
+				// Produto 3 - USARÁ O VALOR DEFAULT DE image_url DA CLASSE PRODUCT
 				Product product3 = new Product();
 				product3.setName("Beterraba");
 				product3.setDescription("100g");
 				product3.setPrice(6);
-				// Para usar o valor default de image_url definido na classe Product, não chame setImageUrl ou passe null
-				// product3.setImageUrl(null); // Poderia ser assim para forçar o default se tivesse um default DB-side
+				// product3.setImageUrl("..."); REMOVIDO: Usará o default da classe Product
 				product3.setStore(store1);
 				product3.setHighlighted(true);
 				productRepository.save(product3);
 
-				// Produto 4
-				Product product4 = new Product(); // Criando a instância correta
+				// Produto 4 - USARÁ O VALOR DEFAULT DE image_url DA CLASSE PRODUCT
+				Product product4 = new Product();
 				product4.setName("Arroz");
-				product4.setDescription("1kg"); // Adicionado argumento
+				product4.setDescription("1kg");
 				product4.setPrice(15);
-				// Para usar o valor default de image_url, não chame setImageUrl ou passe null
-				// product4.setImageUrl(""); // Isso sobrescreveria o default para string vazia
+				// product4.setImageUrl("..."); REMOVIDO: Usará o default da classe Product
 				product4.setStore(store1);
 				product4.setHighlighted(false);
 				productRepository.save(product4);
 
-				// Produto 5
-				Product product5 = new Product(); // Criando a instância correta
+				// Produto 5 - USARÁ O VALOR DEFAULT DE image_url DA CLASSE PRODUCT
+				Product product5 = new Product();
 				product5.setName("Feijão");
-				product5.setDescription("1kg"); // Adicionado argumento
+				product5.setDescription("1kg");
 				product5.setPrice(25);
-				// Para usar o valor default de image_url, não chame setImageUrl ou passe null
+				// product5.setImageUrl("..."); REMOVIDO: Usará o default da classe Product
 				product5.setStore(store1);
 				product5.setHighlighted(false);
 				productRepository.save(product5);
 
-				// Produto 6
-				Product product6 = new Product(); // Criando a instância correta
+				// Produto 6 - USARÁ O VALOR DEFAULT DE image_url DA CLASSE PRODUCT
+				Product product6 = new Product();
 				product6.setName("Maçã");
-				product6.setDescription("1kg"); // Adicionado argumento
+				product6.setDescription("1kg");
 				product6.setPrice(7);
-				// Para usar o valor default de image_url, não chame setImageUrl ou passe null
+				// product6.setImageUrl("..."); REMOVIDO: Usará o default da classe Product
 				product6.setStore(store1);
 				product6.setHighlighted(true);
 				productRepository.save(product6);
 
-				// Produto 7
-				Product product7 = new Product(); // Criando a instância correta
+				// Produto 7 - USARÁ O VALOR DEFAULT DE image_url DA CLASSE PRODUCT
+				Product product7 = new Product();
 				product7.setName("Coca-Cola");
 				product7.setDescription("1l");
 				product7.setPrice(6);
-				// Para usar o valor default de image_url, não chame setImageUrl ou passe null
+				// product7.setImageUrl("..."); REMOVIDO: Usará o default da classe Product
 				product7.setStore(store1);
 				product7.setHighlighted(false);
 				productRepository.save(product7);
 
-				// Produto 8
-				Product product8 = new Product(); // Criando a instância correta
+				// Produto 8 - USARÁ O VALOR DEFAULT DE image_url DA CLASSE PRODUCT
+				Product product8 = new Product();
 				product8.setName("Coca-Cola Zero");
 				product8.setDescription("1l");
 				product8.setPrice(7);
-				// Para usar o valor default de image_url, não chame setImageUrl ou passe null
+				// product8.setImageUrl("..."); REMOVIDO: Usará o default da classe Product
 				product8.setStore(store1);
 				product8.setHighlighted(false);
 				productRepository.save(product8);
 
-				// Produto 9
-				Product product9 = new Product(); // Criando a instância correta
+				// Produto 9 - USARÁ O VALOR DEFAULT DE image_url DA CLASSE PRODUCT
+				Product product9 = new Product();
 				product9.setName("Coca Cola");
 				product9.setDescription("2l");
 				product9.setPrice(7);
-				// Para usar o valor default de image_url, não chame setImageUrl ou passe null
+				// product9.setImageUrl("..."); REMOVIDO: Usará o default da classe Product
 				product9.setStore(store2); // Este produto pertence à Loja 2
 				product9.setHighlighted(false);
 				productRepository.save(product9);

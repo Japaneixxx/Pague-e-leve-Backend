@@ -32,7 +32,7 @@ public class ProductController {
     }
 
     /**
-     * NOVO PRINCIPAL ENDPOINT para a home da loja: acessível diretamente via /{storeId}/
+     * NOVO PRINCIPAL ENDPOINT para a página inicial de cada loja: acessível diretamente via /{storeId}/
      * A página index.html agora será um template Thymeleaf dinâmico.
      *
      * @param storeId O ID da loja.
@@ -160,5 +160,28 @@ public class ProductController {
         model.addAttribute("searchTerm", name);
         System.out.println("Busca na Loja " + storeId + " por '" + name + "': Encontrados " + foundProducts.size() + " produtos.");
         return "storeProductsTemplate"; // Reutilizando o template existente
+    }
+
+    /**
+     * Exibe o carrinho de compras para uma loja específica.
+     * Acessível via: /{storeId}/cart
+     *
+     * @param storeId O ID da loja cujo carrinho será exibido.
+     * @param model O objeto Model para passar dados para o view (Thymeleaf).
+     * @return O nome do template Thymeleaf (cart.html) ou errorTemplate.html se a loja não for encontrada.
+     */
+    @GetMapping("/{storeId}/cart") // MUDANÇA AQUI: Endpoint padronizado
+    public String showCartPage(@PathVariable Long storeId, Model model) {
+        Optional<Store> storeOptional = productService.findStoreById(storeId);
+        if (storeOptional.isPresent()) {
+            model.addAttribute("currentStoreId", storeId);
+            model.addAttribute("store", storeOptional.get());
+            System.out.println("Carregando carrinho para Loja ID: " + storeId);
+            return "cart";
+        } else {
+            model.addAttribute("error", "Loja não encontrada para exibir o carrinho.");
+            System.out.println("Loja com ID: " + storeId + " não encontrada para o carrinho.");
+            return "errorTemplate";
+        }
     }
 }

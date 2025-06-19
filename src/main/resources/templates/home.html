@@ -35,7 +35,7 @@
     <div class="row">
         <div class="space5"></div>
         <div class="">
-            <a class="btn btn-dark rounded-5" href="#" id="carrinho" role="button">Finalizar compra<i class="bi bi-cart"></i>
+            <a class="btn btn-dark rounded-5" th:href="@{/{storeId}/cart(storeId=${currentStoreId})}" id="carrinho" role="button">Finalizar compra<i class="bi bi-cart"></i>
             </a>
         </div>
         <div class="space15">
@@ -98,8 +98,7 @@
         const searchSectionTitle = document.getElementById('searchSectionTitle');
         const currentStoreId = document.getElementById('storeIdData').value;
 
-        // NOVO: Referência para o botão "Finalizar compra"
-        const finalizePurchaseButton = document.getElementById('carrinho');
+        // REMOVIDO: const finalizePurchaseButton = document.getElementById('carrinho'); // Não precisa mais de JS, o link ThymeLeaf faz o trabalho
 
         let searchTimeout;
 
@@ -127,7 +126,7 @@
                                     <h5 class="card-title">${product.name}</h5>
                                     <p class="card-text">${description}</p>
                                     <h6 class="card-subtitle mb-2 text-body-secondary text-success mt-auto">R$ ${priceFormatted}</h6>
-                                    <a href="/produto/${product.id}?storeId=${product.store.id}" class="btn btn-primary mt-3">Detalhes</a>
+                                    <a th:href="@{/produto/{productId}(productId=${product.id}, storeId=${product.store.id})}" class="btn btn-primary mt-3">Detalhes</a>
                                 </div>
                             </div>
                         </div>
@@ -162,52 +161,54 @@
                 const data = await response.json();
                 renderProducts(data);
             } catch (error) {
-                console.error('Erro ao buscar produtos:', error);
-                searchSectionTitle.textContent = 'Erro na Busca';
-                highlightedProductsContainer.innerHTML = `
-                    <div class="col-12">
-                        <div class="alert alert-danger text-center" role="alert">
-                            Erro ao carregar produtos. Tente novamente.
+                    console.error('Erro ao buscar produtos:', error);
+                    searchSectionTitle.textContent = 'Erro na Busca';
+                    highlightedProductsContainer.innerHTML = `
+                        <div class="col-12">
+                            <div class="alert alert-danger text-center" role="alert">
+                                Erro ao carregar produtos. Tente novamente.
+                            </div>
                         </div>
-                    </div>
-                `;
-            }
-        };
-
-        searchInput.addEventListener('input', () => {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-                performLiveSearch();
-            }, 300);
-        });
-
-        searchButton.addEventListener('click', () => {
-            clearTimeout(searchTimeout);
-            const searchTerm = searchInput.value.trim();
-
-            if (searchTerm.length > 0) {
-                window.location.href = `/loja/${currentStoreId}/search?name=${encodeURIComponent(searchTerm)}`;
-            } else {
-                loadOriginalHighlights();
-            }
-        });
-
-        searchInput.addEventListener('keypress', (event) => {
-            if (event.key === 'Enter') {
-                searchButton.click();
-            }
-        });
-
-        // NOVO: Event Listener para o botão "Finalizar compra"
-        if (finalizePurchaseButton) {
-            finalizePurchaseButton.addEventListener('click', (event) => {
-                event.preventDefault(); // Impede o comportamento padrão do href="#"
-                window.location.href = '/cart.html'; // Redireciona para a página do carrinho
+                    `;
+                }
             });
-        } else {
-            console.error('Erro: Botão "Finalizar compra" com ID "carrinho" não encontrado.');
-        }
-    });
+
+            searchInput.addEventListener('input', () => {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    performLiveSearch();
+                }, 300);
+            });
+
+            searchButton.addEventListener('click', () => {
+                clearTimeout(searchTimeout);
+                const searchTerm = searchInput.value.trim();
+
+                if (searchTerm.length > 0) {
+                    window.location.href = `/loja/${currentStoreId}/search?name=${encodeURIComponent(searchTerm)}`;
+                } else {
+                    loadOriginalHighlights();
+                }
+            });
+
+            searchInput.addEventListener('keypress', (event) => {
+                if (event.key === 'Enter') {
+                    searchButton.click();
+                }
+            });
+
+            // REMOVIDO: Lógica JS para o botão "Finalizar compra", pois agora é um link ThymeLeaf
+            /*
+            if (finalizePurchaseButton) {
+                finalizePurchaseButton.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    window.location.href = '/cart.html';
+                });
+            } else {
+                console.error('Erro: Botão "Finalizar compra" com ID "carrinho" não encontrado.');
+            }
+            */
+        });
 </script>
 </body>
 

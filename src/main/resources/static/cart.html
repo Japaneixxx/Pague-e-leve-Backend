@@ -30,7 +30,8 @@
 
 <body class="section bg">
 
-<a type="button" href="/home" class="btn"> <h1 class=""><i class="bi bi-arrow-left-circle-fill"></i></h1>
+<a type="button" href="javascript:void(0);" id="backButton" class="btn">
+    <h1 class=""><i class="bi bi-arrow-left-circle-fill"></i></h1>
 </a>
 <div class="text-center">
     <img src="/images/LogoP.png" alt="Logo"> </div>
@@ -95,7 +96,7 @@
         // Chamada inicial para renderizar o carrinho ao carregar a página
         renderCart();
 
-        // NOVO: Lógica para o botão Limpar Carrinho
+        // Lógica para o botão Limpar Carrinho
         const clearCartButton = document.getElementById('clearCartButton');
         if (clearCartButton) {
             clearCartButton.addEventListener('click', () => {
@@ -106,6 +107,18 @@
                     alert('Carrinho limpo com sucesso!');
                 }
             });
+        }
+
+        // NOVO CÓDIGO AQUI: Lógica para o botão "Voltar"
+        const backButton = document.getElementById('backButton');
+            if (backButton) {
+                 backButton.addEventListener('click', (event) => {
+                event.preventDefault(); // Impede o comportamento padrão do link
+                window.history.back(); // Volta para a página anterior no histórico do navegador
+                console.log('Navegando de volta para a página anterior do carrinho.');
+            });
+        } else {
+            console.error('Erro: Botão "Voltar" com ID "backButton" não encontrado.');
         }
     });
 </script>

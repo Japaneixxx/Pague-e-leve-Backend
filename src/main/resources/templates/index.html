@@ -1,11 +1,8 @@
 <!DOCTYPE html>
-<html lang="pt-br">
-
-<head>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org"> <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pague e leve</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+    <title>Pague e leve - <span th:if="${store}" th:text="${store.name}">Início</span></title> <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="/reset.css"> <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet"
                                                     integrity="sha384-4Q6Gf2aSP4eDXB8Miphtr37CMZZQ5oXLH2yaXMJ2w8e2ZtHTl7GptT4jmndRuHDT" crossorigin="anonymous">
 </head>
@@ -29,13 +26,15 @@
 <body class="section bg">
 
 <div class="position-absolute top-50 start-50 translate-middle">
-    <img src="/src/Logo.png" alt="EmptyCart"> <div class="space5"></div>
+    <img th:src="@{/images/Logo.png}" alt="Logo da Loja"> <div class="space5"></div>
     <div class="d-grid gap-2">
-        <a class="btn btn-dark rounded-pill" href="/home" role="button">Toque aqui pra iniciar</a> </div>
+        <a class="btn btn-dark rounded-pill" th:href="@{/{storeId}/home(storeId=${currentStoreId})}" role="button">Toque aqui pra iniciar</a>
+    </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-j1CDi7MgGQ12Z7Qab0qlWQ/Qqz24Gc6BM0thvEMVjHnfYGF0rmFCozFSxQBxwHKO"
         crossorigin="anonymous"></script>
 </body>
+
 </html>

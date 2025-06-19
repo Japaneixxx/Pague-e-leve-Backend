@@ -24,20 +24,19 @@
     }
     .card-img-top-fix {
         width: 100%;
-        height: 180px;
-        object-fit: cover;
+        height: 180px; /* Altura fixa para as imagens dos produtos */
+        object-fit: cover; /* Garante que a imagem preencha o espaço sem distorcer */
     }
 </style>
 
 <body class="section bg">
 
-<a type="button" th:href="@{/home}" class="btn" ><h1 class=""><i class="bi bi-arrow-left-circle-fill"></i></h1></a>
-
-<div class="space5"></div>
+<a type="button" th:href="@{/{storeId}/home(storeId=${currentStoreId})}" class="btn" ><h1 class=""><i class="bi bi-arrow-left-circle-fill"></i></h1></a> <div class="space5"></div>
 
 <div class="text-center">
-    <h1 class="fw-bold">Produtos</h1>
+    <h1 class="fw-bold" th:text="${searchTerm}? 'Resultados da Busca' : 'Produtos'">Produtos</h1>
     <h3 th:if="${currentStoreId}" th:text="'Loja ID: ' + ${currentStoreId}"></h3>
+    <h5 th:if="${searchTerm}" th:text="'Termo: &quot;' + ${searchTerm} + '&quot;'"></h5>
 </div>
 
 <div class="space15"></div>
@@ -46,7 +45,7 @@
     <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 bg-light m-1 p-2 rounded-3 overflow-auto">
         <div th:if="${products.empty}" class="col-12">
             <div class="alert alert-info text-center" role="alert">
-                Nenhum produto encontrado nesta loja.
+                Nenhum produto encontrado com este termo nesta loja.
             </div>
         </div>
 
@@ -58,7 +57,7 @@
                     <p class="card-text text-body-secondary" th:text="${product.description}">informações</p>
                     <h6 class="card-subtitle mb-2 text-body-secondary text-success mt-auto" th:text="${'R$ ' + #numbers.formatDecimal(product.price, 1, 2,'COMMA')}">R$ 0,00</h6>
 
-                    <a th:href="@{/produto/{productId}(productId=${product.id}, storeId=${product.storeId})}" class="btn btn-primary mt-3">Ver detalhes</a>
+                    <a th:href="@{/produto/{productId}(productId=${product.id}, storeId=${product.store.id})}" class="btn btn-primary mt-3">Ver detalhes</a>
                 </div>
             </div>
         </div>
@@ -69,4 +68,5 @@
         integrity="sha384-j1CDi7MgGQ12Z7Qab0qlWQ/Qqz24Gc6BM0thvEMVjHnfYGF0rmFCozFSxQBxwHKO"
         crossorigin="anonymous"></script>
 </body>
+
 </html>

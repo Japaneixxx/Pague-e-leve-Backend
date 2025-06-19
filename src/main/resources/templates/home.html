@@ -98,8 +98,6 @@
         const searchSectionTitle = document.getElementById('searchSectionTitle');
         const currentStoreId = document.getElementById('storeIdData').value;
 
-        // REMOVIDO: const finalizePurchaseButton = document.getElementById('carrinho'); // Não precisa mais de JS, o link ThymeLeaf faz o trabalho
-
         let searchTimeout;
 
         const renderProducts = (products) => {
@@ -196,18 +194,6 @@
                     searchButton.click();
                 }
             });
-
-            // REMOVIDO: Lógica JS para o botão "Finalizar compra", pois agora é um link ThymeLeaf
-            /*
-            if (finalizePurchaseButton) {
-                finalizePurchaseButton.addEventListener('click', (event) => {
-                    event.preventDefault();
-                    window.location.href = '/cart.html';
-                });
-            } else {
-                console.error('Erro: Botão "Finalizar compra" com ID "carrinho" não encontrado.');
-            }
-            */
         });
 </script>
 </body>

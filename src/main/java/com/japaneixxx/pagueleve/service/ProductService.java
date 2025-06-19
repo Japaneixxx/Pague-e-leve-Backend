@@ -7,29 +7,26 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional; // Adicionar import
 
 import com.japaneixxx.pagueleve.model.Product;
-import com.japaneixxx.pagueleve.model.Store; // Importar Store
+import com.japaneixxx.pagueleve.model.Store;
 import com.japaneixxx.pagueleve.repository.ProductRepository;
-import com.japaneixxx.pagueleve.repository.StoreRepository; // Importar StoreRepository
-import org.springframework.transaction.annotation.Transactional;
+import com.japaneixxx.pagueleve.repository.StoreRepository;
 
 
 @Service
 public class ProductService {
     private final ProductRepository productRepository;
-    private final StoreRepository storeRepository; // NOVO: Injetar StoreRepository
-
-
+    private final StoreRepository storeRepository;
 
     @Autowired
     public ProductService(ProductRepository productRepository, StoreRepository storeRepository) {
         this.productRepository = productRepository;
-        this.storeRepository = storeRepository; // Atribuir StoreRepository
+        this.storeRepository = storeRepository;
     }
 
     // Procura todos os produtos
-
     public List<Product> findAllProducts() {
         return productRepository.findAll();
     }
@@ -89,12 +86,12 @@ public class ProductService {
         return productRepository.findByStoreIdAndNameContainingIgnoreCase(storeId, searchTerm);
     }
 
-    // NOVO MÉTODO: Encontrar uma loja pelo ID
+    // Encontrar uma loja pelo ID
     public Optional<Store> findStoreById(Long storeId) {
         return storeRepository.findById(storeId);
     }
 
-    // NOVO MÉTODO: Buscar produtos por termo de busca, ID da loja E limitado a um número de resultados.
+    // Buscar produtos por termo de busca, ID da loja E limitado a um número de resultados.
     public List<Product> searchProductsByNameAndStoreIdWithLimit(String searchTerm, Long storeId, int limit) {
         Pageable pageable = PageRequest.of(0, limit);
         return productRepository.findByStoreIdAndNameContainingIgnoreCaseOrderByNameAsc(storeId, searchTerm, pageable);

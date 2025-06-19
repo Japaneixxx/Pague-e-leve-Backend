@@ -46,8 +46,7 @@
                th:attr="data-product-Id=${product.id},
                              data-product-Name=${product.name},
                              data-product-Price=${#numbers.formatDecimal(product.price, 0, 'POINT', 2, 'COMMA')},
-                             data-product-Store-Id=${product.store.id}">
-                <i class="bi bi-check-lg"></i>
+                             data-product-Store-Id=${product.store.id}"> <i class="bi bi-check-lg"></i>
             </a>
         </div>
     </div>
@@ -64,7 +63,7 @@
         const checkoutButton = document.getElementById('checkout');
         const plusButton = document.getElementById('plus');
         const minusButton = document.getElementById('minus');
-        const cancelButton = document.getElementById('cancelButton'); // NOVO: Referência ao botão Cancelar
+        const cancelButton = document.getElementById('cancelButton'); // Referência ao botão Cancelar
 
         // --- Validações de Elementos (para depuração) ---
         if (!productNameElement) console.error('Erro: Elemento com ID "productName" não encontrado.');
@@ -122,8 +121,7 @@
                     alert('Erro: O preço do produto não pôde ser lido. Por favor, recarregue a página ou verifique os dados do produto.');
                     return;
                 }
-                // OK: Verifica se o storeId está disponível
-                if (!productStoreId) {
+                if (!productStoreId) { // OK: Verifica se o storeId está disponível
                     console.error('Erro: "data-product-store-id" não encontrado no botão de checkout. Não é possível adicionar o produto ao carrinho sem o ID da loja.');
                     alert('Erro: O ID da loja não pôde ser lido. Por favor, recarregue a página.');
                     return;
@@ -167,8 +165,8 @@
         // --- Parte 4: Botão Cancelar (Voltar para a página anterior) ---
         if (cancelButton) {
             cancelButton.addEventListener('click', (event) => {
-                event.preventDefault(); // Impede o comportamento padrão do link
-                window.history.back(); // Volta para a página anterior no histórico do navegador
+                event.preventDefault();
+                window.history.back();
                 console.log('Navegando de volta para a página anterior.');
             });
         } else {

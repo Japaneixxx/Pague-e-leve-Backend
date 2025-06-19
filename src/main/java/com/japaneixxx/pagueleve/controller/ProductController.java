@@ -170,7 +170,7 @@ public class ProductController {
      * @param model O objeto Model para passar dados para o view (Thymeleaf).
      * @return O nome do template Thymeleaf (cart.html) ou errorTemplate.html se a loja não for encontrada.
      */
-    @GetMapping("/{storeId}/cart") // MUDANÇA AQUI: Endpoint padronizado
+    @GetMapping("/{storeId}/cart") // Endpoint padronizado
     public String showCartPage(@PathVariable Long storeId, Model model) {
         Optional<Store> storeOptional = productService.findStoreById(storeId);
         if (storeOptional.isPresent()) {

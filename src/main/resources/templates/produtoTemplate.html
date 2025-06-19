@@ -138,7 +138,7 @@
                     storeId: productStoreId // Inclui o storeId no objeto produto
                 };
 
-                // OK: CHAVE DO CARRINHO É ESPECÍFICA DA LOJA
+                // CHAVE DO CARRINHO AGORA É ESPECÍFICA DA LOJA
                 const cartKey = `cartItems_${productStoreId}`;
                 let cart = sessionStorage.getItem(cartKey);
                 cart = cart ? JSON.parse(cart) : [];

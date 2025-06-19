@@ -189,11 +189,23 @@
                 }
             });
 
-            searchInput.addEventListener('keypress', (event) => {
+            searchInput.addEventListener('keypress', (event)) => {
                 if (event.key === 'Enter') {
                     searchButton.click();
                 }
-            });
+            };
+
+            // REMOVIDO: Lógica JS para o botão "Finalizar compra", pois agora é um link ThymeLeaf
+            /*
+            if (finalizePurchaseButton) {
+                finalizePurchaseButton.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    window.location.href = '/cart.html';
+                });
+            } else {
+                console.error('Erro: Botão "Finalizar compra" com ID "carrinho" não encontrado.');
+            }
+            */
         });
 </script>
 </body>

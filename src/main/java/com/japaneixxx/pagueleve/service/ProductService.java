@@ -4,10 +4,12 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service; // Importe esta anotação.
 
 import com.japaneixxx.pagueleve.model.Product;
 import com.japaneixxx.pagueleve.repository.ProductRepository;
 
+@Service
 public class ProductService {
     private final ProductRepository productRepository;
 
@@ -16,41 +18,53 @@ public class ProductService {
         this.productRepository = productRepository;
     }
 
-    //Procura todos os produtos
+    // Método para buscar todos os produtos.
     public List<Product> findAllProducts() {
         return productRepository.findAll();
     }
 
-    
-    //Procura um produto pelo id
+    // Método para buscar um produto pelo seu ID.
     public Optional<Product> findProductById(Long id) {
         return productRepository.findById(id);
     }
-    
-    //Procura todos os produtos de uma loja pelo id da loja
+
+    // Método para buscar todos os produtos de uma loja específica.
     public List<Product> findAllProductsByStoreId(Long storeId) {
         return productRepository.findByStoreId(storeId);
     }
 
-    //Procura um produto pelo id e id da loja
+    // Método para buscar um produto pelo seu ID e pelo ID da loja.
     public Optional<Product> findProductByIdAndStoreId(Long id, Long storeId) {
         return productRepository.findByIdAndStoreId(id, storeId);
     }
 
-    //Salva um produto
+    // Método para salvar um novo produto ou atualizar um existente.
     public Product saveProduct(Product product) {
         return productRepository.save(product);
     }
-    //Deleta um produto pelo id
+
+    // Método para deletar um produto pelo seu ID.
     public void deleteProductById(Long id) {
         productRepository.deleteById(id);
     }
-    //Edita um produto
+
+    // Método para atualizar um produto existente (chama save, que funciona como upsert).
     public Product updateProduct(Product product) {
         return productRepository.save(product);
     }
-    //Metodo para verificar se o produto existe pelo id e o id da loja
+
+    // Método para verificar se um produto existe pelo ID e ID da loja.
     public boolean productExistsByIdAndStoreId(Long id, Long storeId) {
         return productRepository.findByIdAndStoreId(id, storeId).isPresent();
+    }
+
+    // NOVO MÉTODO: Encontra todos os produtos marcados como destaque
+    public List<Product> findHighlightedProducts() {
+        return productRepository.findByHighlightedTrue();
+    }
+
+    // NOVO MÉTODO: Encontra todos os produtos marcados como destaque de uma loja específica
+    public List<Product> findHighlightedProductsByStoreId(Long storeId) {
+        return productRepository.findByStoreIdAndHighlightedTrue(storeId);
     }
 }

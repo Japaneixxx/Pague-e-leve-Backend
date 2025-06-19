@@ -24,6 +24,8 @@ public class Product {
     private String imageUrl;
     @Column(name = "store_id", nullable = false)
     private Long storeId;
+    @Column(name = "destaque", nullable = false) // NOME DA COLUNA CORRIGIDO AQUI!
+    private boolean highlighted;
 
 
     // Getters and Setters
@@ -59,7 +61,7 @@ public class Product {
         this.price = price;
     }
 
-    
+
     public String getImageUrl() {
         return imageUrl;
     }
@@ -67,13 +69,20 @@ public class Product {
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
     }
-    
-    public Long getStoreId(Long StoreId) {
-        return StoreId;
+
+    public Long getStoreId() {
+        return storeId;
     }
 
     public void setStoreId(Long storeId) {
         this.storeId = storeId;
     }
 
+    public boolean isHighlighted() {
+        return highlighted;
+    }
+
+    public void setHighlighted(boolean highlighted) {
+        this.highlighted = highlighted;
+    }
 }

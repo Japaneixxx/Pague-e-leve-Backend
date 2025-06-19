@@ -9,10 +9,13 @@ WORKDIR /app
 COPY pom.xml .
 COPY .mvn .mvn/
 COPY mvnw .
-COPY .mvnw .
+# Esta linha copia o script 'mvnw' (sem o ponto inicial extra no nome)
+
+# A linha 'COPY .mvnw .' FOI REMOVIDA AQUI, pois '.mvnw' não é um arquivo padrão.
 
 # Baixa as dependências do Maven (irá usar o cache se nada mudou no pom.xml)
-RUN --mount=type=cache,target=/root/.m2 ./mvnw dependency:go-offline
+# Certifique-se de que 'mvnw' tem permissões de execução dentro do contêiner
+RUN chmod +x mvnw && --mount=type=cache,target=/root/.m2 ./mvnw dependency:go-offline
 
 # Copia o código fonte da sua aplicação
 COPY src ./src

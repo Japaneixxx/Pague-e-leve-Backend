@@ -36,7 +36,7 @@
             <h6 class="card-subtitle mb-2 text-body-secondary " th:text="${product.description}">informações</h6>
             <p class="card-text" id="productPrice" th:text="'R$ ' + ${#numbers.formatDecimal(product.price, 0, 'POINT', 2, 'COMMA')}">Preço</p>
 
-            <a href="javascript:void(0);" id="cancelButton" class="btn btn-light">Cancelar</a>
+            <a href="javascript:void(0);" id="cancelButton" class="btn btn-light">Voltar</a>
             <span class="px-4"></span>
             <a href="#" class="btn btn-dark rounded-pill px-1 py-0" id="minus"><i class="bi bi-dash"></i></a>
             <span class="px-1" id="quantity">1</span>

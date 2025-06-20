@@ -31,7 +31,7 @@
 
 <body class="section bg">
 
-<a type="button" href="javascript:void(0);" id="backButton" class="btn" ><h1 class=""><i class="bi bi-arrow-left-circle-fill"></i></h1></a> <div class="space5"></div>
+<a type="button" th:href="@{/{storeId}/home(storeId=${currentStoreId})}" id="backButton" class="btn" ><h1 class=""><i class="bi bi-arrow-left-circle-fill"></i></h1></a> <div class="space5"></div>
 
 <div class="text-center">
     <h1 class="fw-bold" th:text="${searchTerm}? 'Resultados da Busca' : 'Produtos'">Produtos</h1>
@@ -68,19 +68,19 @@
         integrity="sha384-j1CDi7MgGQ12Z7Qab0qlWQ/Qqz24Gc6BM0thvEMVjHnfYGF0rmFCozFSxQBxwHKO"
         crossorigin="anonymous"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        // Lógica para o botão "Voltar"
-        const backButton = document.getElementById('backButton');
-        if (backButton) {
-            backButton.addEventListener('click', (event) => {
-                event.preventDefault(); // Impede o comportamento padrão do link
-                window.history.back(); // Volta para a página anterior no histórico do navegador
-                console.log('Navegando de volta para a página anterior.');
-            });
-        } else {
-            console.error('Erro: Botão "Voltar" com ID "backButton" não encontrado em storeProductsTemplate.');
-        }
-    });
+<!--    document.addEventListener('DOMContentLoaded', () => {-->
+<!--        // Lógica para o botão "Voltar"-->
+<!--        const backButton = document.getElementById('backButton');-->
+<!--        if (backButton) {-->
+<!--            backButton.addEventListener('click', (event) => {-->
+<!--                event.preventDefault(); // Impede o comportamento padrão do link-->
+<!--                window.history.back(); // Volta para a página anterior no histórico do navegador-->
+<!--                console.log('Navegando de volta para a página anterior.');-->
+<!--            });-->
+<!--        } else {-->
+<!--            console.error('Erro: Botão "Voltar" com ID "backButton" não encontrado em storeProductsTemplate.');-->
+<!--        }-->
+<!--    });-->
 </script>
 </body>
 

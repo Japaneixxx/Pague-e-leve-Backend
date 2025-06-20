@@ -42,7 +42,7 @@
             <span class="px-1" id="quantity">1</span>
             <a href="#" class="btn btn-dark rounded-pill px-1 py-0" id="plus"><i class="bi bi-plus"></i></a>
             <span class="px-1"></span>
-            <a href="#" id="checkout" class="btn btn-dark rounded-4 px-3 "
+            <a th:href="@{/loja/{storeId}/produtos(storeId=${product.store.id})}" id="checkout" class="btn btn-dark rounded-4 px-3 "
                th:attr="data-product-Id=${product.id},
                              data-product-Name=${product.name},
                              data-product-Price=${#numbers.formatDecimal(product.price, 0, 'POINT', 2, 'COMMA')},
@@ -156,7 +156,7 @@
                 sessionStorage.setItem(cartKey, JSON.stringify(cart)); // OK: Salva com a nova chave
 
                 console.log(`Carrinho atual da loja ${productStoreId} no sessionStorage:`, JSON.parse(sessionStorage.getItem(cartKey)));
-                alert(`"${product.name}" (${quantityToAdd}x) adicionado ao carrinho da loja ${productStoreId}!`);
+<!--                alert(`"${product.name}" (${quantityToAdd}x) adicionado ao carrinho da loja ${productStoreId}!`);-->
             });
         } else {
             console.error('Não foi possível configurar o listener de clique para o botão "checkout" ou o elemento de quantidade.');

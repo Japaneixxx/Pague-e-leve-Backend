@@ -53,7 +53,7 @@
                     class="bi bi-search"></i></button>
         </div>
         <div class="text-end">
-            <a th:href="@{/loja/{storeId}/produtos(storeId=${currentStoreId})}" type="button" class="btn btn-dark rounded-pill">Ver todos</a>
+            <a th:href="@{/{storeId}/produtos(storeId=${currentStoreId})}" type="button" class="btn btn-dark rounded-pill">Ver todos</a>
         </div>
         <div class="space15"></div>
 
@@ -69,6 +69,7 @@
                     </div>
 
                     <div class="col initial-display" th:each="product : ${highlightedProducts}">
+                        <a th:href="@{/produto/{productId}(productId=${product.id}, storeId=${product.store.id})}" class="text-reset text-decoration-none">
                         <div class="card h-100">
                             <img th:src="${product.imageUrl ?: '/images/placeholder.png'}" class="card-img-top card-img-top-fix" th:alt="${product.name}">
                             <div class="card-body fw-light d-flex flex-column">
@@ -78,6 +79,7 @@
                                 <a th:href="@{/produto/{productId}(productId=${product.id}, storeId=${product.store.id})}" class="btn btn-primary mt-3">Detalhes</a>
                             </div>
                         </div>
+                        </a>
                     </div>
                 </div>
 
@@ -118,15 +120,17 @@
 
                     productsHtml += `
                         <div class="col">
+                        <a href="/produto/${product.id}?storeId=${product.store.id}" class="text-reset text-decoration-none">
                             <div class="card h-100">
                                 <img src="${imageUrl}" class="card-img-top card-img-top-fix" alt="${product.name}">
                                 <div class="card-body fw-light d-flex flex-column">
                                     <h5 class="card-title">${product.name}</h5>
                                     <p class="card-text">${description}</p>
                                     <h6 class="card-subtitle mb-2 text-body-secondary text-success mt-auto">R$ ${priceFormatted}</h6>
-                                    <a th:href="@{/produto/{productId}(productId=${product.id}, storeId=${product.store.id})}" class="btn btn-primary mt-3">Detalhes</a>
+                                    <a href="/produto/${product.id}?storeId=${product.store.id}" class="btn btn-primary mt-3">Detalhes</a>
                                 </div>
                             </div>
+                            </a>
                         </div>
                     `;
                 });
@@ -159,43 +163,42 @@
                 const data = await response.json();
                 renderProducts(data);
             } catch (error) {
-                    console.error('Erro ao buscar produtos:', error);
-                    searchSectionTitle.textContent = 'Erro na Busca';
-                    highlightedProductsContainer.innerHTML = `
-                        <div class="col-12">
-                            <div class="alert alert-danger text-center" role="alert">
-                                Erro ao carregar produtos. Tente novamente.
-                            </div>
+                console.error('Erro ao buscar produtos:', error);
+                searchSectionTitle.textContent = 'Erro na Busca';
+                highlightedProductsContainer.innerHTML = `
+                    <div class="col-12">
+                        <div class="alert alert-danger text-center" role="alert">
+                            Erro ao carregar produtos. Tente novamente.
                         </div>
-                    `;
-                }
-            };
+                    </div>
+                `;
+            }
+        };
 
-            searchInput.addEventListener('input', () => {
-                clearTimeout(searchTimeout);
-                searchTimeout = setTimeout(() => {
-                    performLiveSearch();
-                }, 300);
-            });
-
-            searchButton.addEventListener('click', () => {
-                clearTimeout(searchTimeout);
-                const searchTerm = searchInput.value.trim();
-
-                if (searchTerm.length > 0) {
-                    window.location.href = `/loja/${currentStoreId}/search?name=${encodeURIComponent(searchTerm)}`;
-                } else {
-                    loadOriginalHighlights();
-                }
-            });
-
-            // MUDANÇA AQUI: Corrigido o parêntese extra
-            searchInput.addEventListener('keypress', (event) => {
-                if (event.key === 'Enter') {
-                    searchButton.click();
-                }
-            });
+        searchInput.addEventListener('input', () => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                performLiveSearch();
+            }, 300);
         });
+
+        searchButton.addEventListener('click', () => {
+            clearTimeout(searchTimeout);
+            const searchTerm = searchInput.value.trim();
+
+            if (searchTerm.length > 0) {
+                window.location.href = `/${currentStoreId}/search?name=${encodeURIComponent(searchTerm)}`;
+            } else {
+                loadOriginalHighlights();
+            }
+        });
+
+        searchInput.addEventListener('keypress', (event) => {
+            if (event.key === 'Enter') {
+                searchButton.click();
+            }
+        });
+    });
 </script>
 </body>
 

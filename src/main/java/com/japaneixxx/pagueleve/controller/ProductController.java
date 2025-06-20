@@ -118,7 +118,7 @@ public class ProductController {
      * Endpoint para listar todos os produtos de uma loja específica.
      * Acessível via: /loja/{storeId}/produtos
      */
-    @GetMapping("/loja/{storeId}/produtos")
+    @GetMapping("/{storeId}/produtos")
     public String listProductsByStore(@PathVariable Long storeId, Model model) {
         List<Product> products = productService.findAllProductsByStoreId(storeId);
         model.addAttribute("products", products);
@@ -150,7 +150,7 @@ public class ProductController {
      * Endpoint para buscar produtos por nome dentro de uma loja e exibir em uma nova página.
      * Acessível via: /loja/{storeId}/search?name={searchTerm}
      */
-    @GetMapping("/loja/{storeId}/search")
+    @GetMapping("/{storeId}/search")
     public String searchProductsInStore(@PathVariable Long storeId,
                                         @RequestParam("name") String name,
                                         Model model) {

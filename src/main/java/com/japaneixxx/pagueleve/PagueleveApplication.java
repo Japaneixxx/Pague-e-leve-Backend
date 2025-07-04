@@ -54,7 +54,7 @@ public class PagueleveApplication {
 			} else {
 				System.out.println("Criando Loja '" + storeName2 + "'...");
 				Store newStore2 = new Store(storeName2, "chavepixdomercado@email.com", "admin2", "admin2"); // Adiciona PIX
-				store2 = storeRepository.save(newStore2); // Salva e captura o objeto Store com o ID gerado
+				store2 = storeRepository.save(newStore2);  // Salva e captura o objeto Store com o ID gerado
 				System.out.println("Loja '" + storeName2 + "' criada com ID: " + store2.getId());
 			}
 

@@ -38,11 +38,11 @@
 
             <a href="javascript:void(0);" id="cancelButton" class="btn btn-light">Voltar</a>
             <span class="px-4"></span>
-            <a href="#" class="btn btn-dark rounded-pill px-1 py-0" id="minus"><i class="bi bi-dash"></i></a>
+            <a href="javascript:void(0);" class="btn btn-dark rounded-pill px-1 py-0" id="minus"><i class="bi bi-dash"></i></a>
             <span class="px-1" id="quantity">1</span>
-            <a href="#" class="btn btn-dark rounded-pill px-1 py-0" id="plus"><i class="bi bi-plus"></i></a>
+            <a href="javascript:void(0);" class="btn btn-dark rounded-pill px-1 py-0" id="plus"><i class="bi bi-plus"></i></a>
             <span class="px-1"></span>
-            <a th:href="@{/loja/{storeId}/produtos(storeId=${product.store.id})}" id="checkout" class="btn btn-dark rounded-4 px-3 "
+            <a href="javascript:void(0);" id="checkout" class="btn btn-dark rounded-4 px-3 "
                th:attr="data-product-Id=${product.id},
                              data-product-Name=${product.name},
                              data-product-Price=${#numbers.formatDecimal(product.price, 0, 'POINT', 2, 'COMMA')},
@@ -172,7 +172,17 @@
         } else {
             console.error('Erro: Botão com ID "cancelButton" não encontrado.');
         }
-    });
+
+        if (checkoutButton) {
+            checkoutButton.addEventListener('click', (event) => {
+                event.preventDefault();
+                window.history.back();
+                console.log('Navegando de volta para a página anterior.');
+            });
+        } else {
+            console.error('Erro: Botão com ID "cancelButton" não encontrado.');
+        }
+        });
 </script>
 
 

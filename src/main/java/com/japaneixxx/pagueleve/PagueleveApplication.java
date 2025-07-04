@@ -42,7 +42,8 @@ public class PagueleveApplication {
 				System.out.println("Loja '" + storeName1 + "' já existe com ID: " + store1.getId());
 			} else {
 				System.out.println("Criando Loja '" + storeName1 + "'...");
-				Store newStore1 = new Store(storeName1, "11.222.333/0001-44"); // Adiciona PIX
+				Store newStore1 = new Store(storeName1, "11.222.333/0001-44", "admin", "admin"); // Adiciona PIX
+
 				store1 = storeRepository.save(newStore1); // Salva e captura o objeto Store com o ID gerado
 				System.out.println("Loja '" + storeName1 + "' criada com ID: " + store1.getId());
 			}
@@ -52,7 +53,7 @@ public class PagueleveApplication {
 				System.out.println("Loja '" + storeName2 + "' já existe com ID: " + store2.getId());
 			} else {
 				System.out.println("Criando Loja '" + storeName2 + "'...");
-				Store newStore2 = new Store(storeName2, "chavepixdomercado@email.com"); // Adiciona PIX
+				Store newStore2 = new Store(storeName2, "chavepixdomercado@email.com", "admin2", "admin2"); // Adiciona PIX
 				store2 = storeRepository.save(newStore2); // Salva e captura o objeto Store com o ID gerado
 				System.out.println("Loja '" + storeName2 + "' criada com ID: " + store2.getId());
 			}

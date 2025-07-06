@@ -6,8 +6,9 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort; // Import the Sort class
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional; // Adicionar import
+import org.springframework.transaction.annotation.Transactional;
 
 import com.japaneixxx.pagueleve.model.Product;
 import com.japaneixxx.pagueleve.model.Store;
@@ -75,10 +76,13 @@ public class ProductService {
         return productRepository.findByStoreIdAndHighlightedTrue(storeId);
     }
 
+    // --- FIX 1: Corrected method call and added sorting to Pageable ---
     // Buscar produtos por termo de busca, limitado a um número de resultados.
     public List<Product> searchProductsByName(String searchTerm, int limit) {
-        Pageable pageable = PageRequest.of(0, limit);
-        return productRepository.findByNameContainingIgnoreCaseOrderByNameAsc(searchTerm, pageable);
+        // We add sorting information directly to the PageRequest object.
+        Pageable pageable = PageRequest.of(0, limit, Sort.by("name").ascending());
+        // We call the existing repository method and get the content from the returned Page.
+        return productRepository.findByNameContainingIgnoreCase(searchTerm, pageable).getContent();
     }
 
     // Buscar produtos por termo de busca e ID da loja (sem limite)
@@ -91,9 +95,12 @@ public class ProductService {
         return storeRepository.findById(storeId);
     }
 
+    // --- FIX 2: Corrected method call and added sorting to Pageable ---
     // Buscar produtos por termo de busca, ID da loja E limitado a um número de resultados.
     public List<Product> searchProductsByNameAndStoreIdWithLimit(String searchTerm, Long storeId, int limit) {
-        Pageable pageable = PageRequest.of(0, limit);
-        return productRepository.findByStoreIdAndNameContainingIgnoreCaseOrderByNameAsc(storeId, searchTerm, pageable);
+        // We do the same here: add sorting to the PageRequest.
+        Pageable pageable = PageRequest.of(0, limit, Sort.by("name").ascending());
+        // And call the correct, existing repository method.
+        return productRepository.findByStoreIdAndNameContainingIgnoreCase(storeId, searchTerm, pageable).getContent();
     }
 }

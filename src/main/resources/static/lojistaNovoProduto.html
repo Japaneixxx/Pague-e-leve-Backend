@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pague e Leve - Novo Produto</title>
+    <link rel="stylesheet" href="reset.css">
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #25CF03;
+        }
+        .card {
+            margin-top: 3rem;
+            margin-bottom: 3rem;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container my-3">
+    <a href="lojistaPagina.html" class="btn btn-light shadow-sm">
+        <i class="bi bi-arrow-left-circle-fill"></i> Voltar para a Lista
+    </a>
+</div>
+
+<div class="container">
+    <div class="card">
+        <div class="card-header">
+            <h3>Adicionar Novo Produto</h3>
+        </div>
+        <div class="card-body">
+            <form id="productForm" enctype="multipart/form-data">
+                <div id="formMessage" class="d-none" role="alert"></div>
+
+                <div class="mb-3">
+                    <label for="productName" class="form-label fw-bold">Nome do Produto</label>
+                    <input type="text" class="form-control" id="productName" name="name" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="productDescription" class="form-label fw-bold">Descrição do Produto</label>
+                    <textarea class="form-control" id="productDescription" name="description" rows="3"></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label for="productPrice" class="form-label fw-bold">Preço do Produto</label>
+                    <div class="input-group">
+                        <span class="input-group-text">R$</span>
+                        <input type="number" step="0.01" class="form-control" id="productPrice" name="price" placeholder="19.99" required>
+                    </div>
+                </div>
+
+                <!-- INÍCIO DA MUDANÇA: Opções para escolher o método da imagem -->
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Imagem do Produto (Opcional)</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="imageSource" id="sourceUpload" value="upload" checked>
+                        <label class="form-check-label" for="sourceUpload">
+                            Fazer Upload de Arquivo
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="imageSource" id="sourceLink" value="link">
+                        <label class="form-check-label" for="sourceLink">
+                            Usar Link de Imagem
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Container para o input de upload -->
+                <div id="uploadContainer" class="mb-3">
+                    <input type="file" class="form-control" id="productImage" name="imageFile" accept="image/*">
+                </div>
+
+                <!-- Container para o input de link (inicialmente escondido) -->
+                <div id="linkContainer" class="mb-3 d-none">
+                    <input type="url" class="form-control" id="imageUrl" name="imageUrl" placeholder="https://exemplo.com/imagem.jpg">
+                    <div class="form-text">Cole a URL completa da imagem aqui.</div>
+                </div>
+                <!-- FIM DA MUDANÇA -->
+
+
+                <div class="form-check form-switch mb-4">
+                    <input class="form-check-input" type="checkbox" role="switch" id="productFeatured" name="featured" value="true">
+                    <label class="form-check-label" for="productFeatured">Produto de Destaque</label>
+                </div>
+
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary" id="submitButton">
+                        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                        Adicionar Produto
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    const productForm = document.getElementById('productForm');
+    const formMessage = document.getElementById('formMessage');
+    const submitButton = document.getElementById('submitButton');
+    const spinner = submitButton.querySelector('.spinner-border');
+
+    // INÍCIO DA MUDANÇA: Lógica para alternar entre os inputs de imagem
+    const sourceUpload = document.getElementById('sourceUpload');
+    const sourceLink = document.getElementById('sourceLink');
+    const uploadContainer = document.getElementById('uploadContainer');
+    const linkContainer = document.getElementById('linkContainer');
+    const fileInput = document.getElementById('productImage');
+    const urlInput = document.getElementById('imageUrl');
+
+    sourceUpload.addEventListener('change', () => {
+        if (sourceUpload.checked) {
+            uploadContainer.classList.remove('d-none');
+            linkContainer.classList.add('d-none');
+            urlInput.value = ''; // Limpa o campo de URL para não ser enviado
+        }
+    });
+
+    sourceLink.addEventListener('change', () => {
+        if (sourceLink.checked) {
+            linkContainer.classList.remove('d-none');
+            uploadContainer.classList.add('d-none');
+            fileInput.value = ''; // Limpa o campo de arquivo para não ser enviado
+        }
+    });
+    // FIM DA MUDANÇA
+
+    // Adicionamos uma verificação ao carregar a página
+    document.addEventListener('DOMContentLoaded', () => {
+        const storeId = localStorage.getItem('loggedInStoreId');
+        if (!storeId) {
+            // Se não houver ID, redireciona para o login
+            alert('Você não está autenticado. Redirecionando para a página de login.');
+            window.location.href = '/lojistaLogin.html';
+        }
+    });
+
+    productForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const storeId = localStorage.getItem('loggedInStoreId');
+
+        if (!storeId) {
+            formMessage.className = 'alert alert-danger mt-3';
+            formMessage.textContent = 'Erro: Sessão expirada. Por favor, faça o login novamente.';
+            formMessage.classList.remove('d-none');
+            return;
+        }
+
+        submitButton.disabled = true;
+        spinner.classList.remove('d-none');
+        formMessage.classList.add('d-none');
+
+        const formData = new FormData(productForm);
+        formData.append('storeId', storeId);
+
+        try {
+            const response = await fetch('/api/products', {
+                method: 'POST',
+                body: formData,
+            });
+
+            const resultText = await response.text();
+
+            if (response.ok) {
+                formMessage.className = 'alert alert-success mt-3';
+                formMessage.textContent = resultText;
+                productForm.reset();
+                // Reseta a visibilidade dos inputs de imagem para o padrão
+                uploadContainer.classList.remove('d-none');
+                linkContainer.classList.add('d-none');
+            } else {
+                formMessage.className = 'alert alert-danger mt-3';
+                formMessage.textContent = `Erro: ${resultText}`;
+            }
+        } catch (error) {
+            console.error('Erro de Rede:', error);
+            formMessage.className = 'alert alert-danger mt-3';
+            formMessage.textContent = 'Erro de conexão. Verifique se o servidor está no ar.';
+        } finally {
+            submitButton.disabled = false;
+            spinner.classList.add('d-none');
+            formMessage.classList.remove('d-none');
+        }
+    });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

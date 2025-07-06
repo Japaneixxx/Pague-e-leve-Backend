@@ -8,4 +8,7 @@ import java.util.Optional; // Importar Optional
 public interface StoreRepository extends JpaRepository<Store, Long> {
     // Método para procurar uma loja pelo nome (útil no CommandLineRunner)
     Optional<Store> findByName(String name);
+
+    // Método para procurar uma loja pelo login (útil no CommandLineRunner)
+    Optional<Store> findByLogin(String login);
 }

@@ -1,34 +1,85 @@
 package com.japaneixxx.pagueleve.repository;
+
+import com.japaneixxx.pagueleve.model.Product;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.domain.Pageable; // Adicionar import
-
-import com.japaneixxx.pagueleve.model.Product;
-
+/**
+ * Repositório para gerenciar a entidade Product.
+ * Utiliza Spring Data JPA para abstrair o acesso ao banco de dados.
+ */
 public interface ProductRepository extends JpaRepository<Product, Long> {
-    //Metodo para procurar produtos por ID da loja (Spring Data JPA mapeia para store.id)
+
+    /**
+     * Encontra todos os produtos associados a um ID de loja específico.
+     * O Spring Data JPA mapeia 'StoreId' para a propriedade 'store.id' na entidade Product.
+     *
+     * @param storeId O ID da loja.
+     * @return Uma lista de produtos da loja.
+     */
     List<Product> findByStoreId(Long storeId);
 
-    //Metodo para procurar um produto pelo ID e ID da loja (Spring Data JPA mapeia para store.id)
+    /**
+     * Encontra um produto específico pelo seu ID e pelo ID da sua loja.
+     *
+     * @param id      O ID do produto.
+     * @param storeId O ID da loja.
+     * @return Um Optional contendo o produto, se encontrado.
+     */
     Optional<Product> findByIdAndStoreId(Long id, Long storeId);
 
-    // Procura produtos que são destaques
+    /**
+     * Encontra todos os produtos marcados como destaque (highlighted).
+     *
+     * @return Uma lista de produtos em destaque.
+     */
     List<Product> findByHighlightedTrue();
 
-    // Procura produtos de uma loja que são destaques (Spring Data JPA mapeia para store.id)
+    /**
+     * Encontra todos os produtos em destaque de uma loja específica.
+     *
+     * @param storeId O ID da loja.
+     * @return Uma lista de produtos em destaque da loja.
+     */
     List<Product> findByStoreIdAndHighlightedTrue(Long storeId);
 
-    // Procura produtos cujo nome contenha o termo de busca (case-insensitive)
+    /**
+     * Busca produtos cujo nome contenha um termo, ignorando maiúsculas/minúsculas.
+     *
+     * @param name O termo de busca.
+     * @return Uma lista de produtos correspondentes.
+     */
     List<Product> findByNameContainingIgnoreCase(String name);
 
-    // Procura produtos cujo nome contenha o termo de busca (case-insensitive) dentro de uma loja específica
+    /**
+     * Busca produtos em uma loja específica cujo nome contenha um termo, ignorando maiúsculas/minúsculas.
+     *
+     * @param storeId O ID da loja.
+     * @param name    O termo de busca.
+     * @return Uma lista de produtos correspondentes na loja.
+     */
     List<Product> findByStoreIdAndNameContainingIgnoreCase(Long storeId, String name);
 
-    // Procura produtos cujo nome contenha o termo de busca (case-insensitive), e é limitado por um número
-    List<Product> findByNameContainingIgnoreCaseOrderByNameAsc(String name, Pageable pageable);
+    /**
+     * Busca produtos cujo nome contenha um termo, com paginação e ordenação.
+     *
+     * @param name     O termo de busca.
+     * @param pageable Objeto de paginação (contém tamanho da página, página atual e ordenação).
+     * @return Um objeto Page contendo os produtos e informações de paginação.
+     */
+    Page<Product> findByNameContainingIgnoreCase(String name, Pageable pageable);
 
-    // Procura produtos cujo nome contenha o termo de busca (case-insensitive) dentro de uma loja específica, ordenado e com limite
-    List<Product> findByStoreIdAndNameContainingIgnoreCaseOrderByNameAsc(Long storeId, String name, Pageable pageable);
+    /**
+     * Busca produtos em uma loja específica cujo nome contenha um termo, com paginação e ordenação.
+     *
+     * @param storeId  O ID da loja.
+     * @param name     O termo de busca.
+     * @param pageable Objeto de paginação.
+     * @return Um objeto Page contendo os produtos e informações de paginação.
+     */
+    Page<Product> findByStoreIdAndNameContainingIgnoreCase(Long storeId, String name, Pageable pageable);
 }

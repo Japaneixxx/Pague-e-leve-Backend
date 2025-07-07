@@ -23,6 +23,8 @@ public class Product {
     private String description;
     @Column(name = "price", nullable = false)
     private double price;
+    @Column(name = "barcode")
+    private String codigoDeBarras;
 
     // Define um valor padrão para imageUrl na declaração do campo
     @Column(name = "image_url")
@@ -93,5 +95,13 @@ public class Product {
 
     public void setHighlighted(boolean highlighted) {
         this.highlighted = highlighted;
+    }
+
+    public String getCodigoDeBarras() {
+        return codigoDeBarras;
+    }
+
+    public void setCodigoDeBarras(String codigoDeBarras) {
+        this.codigoDeBarras = codigoDeBarras;
     }
 }

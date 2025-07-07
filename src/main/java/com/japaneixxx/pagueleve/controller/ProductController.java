@@ -45,7 +45,8 @@ public class ProductController {
             @RequestParam("price") Double price,
             @RequestParam(value = "featured", required = false, defaultValue = "false") boolean featured,
             @RequestParam(value = "imageFile", required = false) MultipartFile imageFile,
-            @RequestParam(value = "imageUrl", required = false) String imageUrl, // NOVO PARÂMETRO
+            @RequestParam(value = "imageUrl", required = false) String imageUrl,
+            @RequestParam(value = "codigoDeBarras", required = false) String codigoDeBarras,// NOVO PARÂMETRO
             @RequestParam("storeId") Long storeId) {
 
         Optional<Store> storeOptional = productService.findStoreById(storeId);
@@ -77,6 +78,7 @@ public class ProductController {
             product.setPrice(price);
             product.setHighlighted(featured);
             product.setImageUrl(finalImageUrl); // Salva a URL decidida
+            product.setCodigoDeBarras(codigoDeBarras);
             product.setStore(storeOptional.get());
 
             productService.saveProduct(product);
@@ -121,7 +123,8 @@ public class ProductController {
             @RequestParam("price") Double price,
             @RequestParam(value = "featured", required = false, defaultValue = "false") boolean featured,
             @RequestParam(value = "imageFile", required = false) MultipartFile imageFile,
-            @RequestParam(value = "imageUrl", required = false) String imageUrl, // NOVO PARÂMETRO
+            @RequestParam(value = "imageUrl", required = false) String imageUrl,
+            @RequestParam(value = "codigoDeBarras", required = false) String codigoDeBarras, // NOVO PARÂMETRO
             @RequestParam("storeId") Long storeId) {
 
         Optional<Product> existingProductOptional = productService.findProductByIdAndStoreId(productId, storeId);
@@ -150,6 +153,7 @@ public class ProductController {
             productToUpdate.setDescription(description);
             productToUpdate.setPrice(price);
             productToUpdate.setHighlighted(featured);
+            productToUpdate.setCodigoDeBarras(codigoDeBarras);
 
             productService.saveProduct(productToUpdate);
 
@@ -312,6 +316,34 @@ public class ProductController {
             model.addAttribute("error", "Loja não encontrada para exibir o carrinho.");
             System.out.println("Loja com ID: " + storeId + " não encontrada para o carrinho.");
             return "errorTemplate";
+        }
+    }
+
+
+    /**
+     * API para buscar um produto pelo seu código de barras.
+     * Acessível via: GET /api/products/barcode/{barcode}
+     */
+    @GetMapping("/api/products/barcode/{barcode}")
+    @ResponseBody
+    public ResponseEntity<?> findProductByBarcode(@PathVariable String barcode, @RequestParam Long storeId) {
+        log.info("Buscando produto com código de barras '{}' na loja ID {}", barcode, storeId);
+
+        // Primeiro, buscamos o produto pelo código de barras
+        Optional<Product> productOptional = productService.findByCodigoDeBarras(barcode);
+
+        if (productOptional.isPresent()) {
+            Product product = productOptional.get();
+            // Verificação de segurança: o produto encontrado pertence à loja correta?
+            if (product.getStore().getId().equals(storeId)) {
+                return ResponseEntity.ok(product); // Retorna o produto se encontrado e na loja certa
+            } else {
+                // Produto existe, mas em outra loja. Para o usuário, é como se não existisse.
+                return ResponseEntity.notFound().build();
+            }
+        } else {
+            // Produto não encontrado no banco de dados
+            return ResponseEntity.notFound().build();
         }
     }
 }

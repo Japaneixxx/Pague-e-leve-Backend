@@ -103,4 +103,9 @@ public class ProductService {
         // And call the correct, existing repository method.
         return productRepository.findByStoreIdAndNameContainingIgnoreCase(storeId, searchTerm, pageable).getContent();
     }
+
+
+    public Optional<Product> findByCodigoDeBarras(String codigoDeBarras) {
+        return productRepository.findByCodigoDeBarras(codigoDeBarras);
+    }
 }

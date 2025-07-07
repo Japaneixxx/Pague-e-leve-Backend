@@ -82,4 +82,12 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
      * @return Um objeto Page contendo os produtos e informações de paginação.
      */
     Page<Product> findByStoreIdAndNameContainingIgnoreCase(Long storeId, String name, Pageable pageable);
+
+
+    /**
+     * Busca um produto pelo seu código de barras.
+     * @param codigoDeBarras O código de barras a ser procurado.
+     * @return Um Optional contendo o produto, se encontrado.
+     */
+    Optional<Product> findByCodigoDeBarras(String codigoDeBarras);
 }

@@ -55,35 +55,44 @@
                     </div>
                 </div>
 
-                <!-- INÍCIO DA MUDANÇA: Opções para escolher o método da imagem -->
+                <!-- MUDANÇA: Campo de Código de Barras com Scanner -->
+                <div class="mb-3">
+                    <label for="productBarcode" class="form-label fw-bold">Código de Barras (Opcional)</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="productBarcode" name="codigoDeBarras" placeholder="Digite ou escaneie o código">
+                        <button class="btn btn-outline-secondary" type="button" id="start-scan-btn" title="Escanear Código de Barras">
+                            <i class="bi bi-upc-scan"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Scanner UI (inicialmente escondido) -->
+                <div id="scanner-ui" class="mt-3" style="display: none;">
+                    <div id="barcode-scanner-container" style="width: 100%; max-width: 500px; margin: auto;"></div>
+                    <button id="stop-scan-btn" class="btn btn-danger mt-2" type="button">Parar Scanner</button>
+                </div>
+                <!-- FIM DA MUDANÇA -->
+
                 <div class="mb-3">
                     <label class="form-label fw-bold">Imagem do Produto (Opcional)</label>
                     <div class="form-check">
                         <input class="form-check-input" type="radio" name="imageSource" id="sourceUpload" value="upload" checked>
-                        <label class="form-check-label" for="sourceUpload">
-                            Fazer Upload de Arquivo
-                        </label>
+                        <label class="form-check-label" for="sourceUpload">Fazer Upload de Arquivo</label>
                     </div>
                     <div class="form-check">
                         <input class="form-check-input" type="radio" name="imageSource" id="sourceLink" value="link">
-                        <label class="form-check-label" for="sourceLink">
-                            Usar Link de Imagem
-                        </label>
+                        <label class="form-check-label" for="sourceLink">Usar Link de Imagem</label>
                     </div>
                 </div>
 
-                <!-- Container para o input de upload -->
                 <div id="uploadContainer" class="mb-3">
                     <input type="file" class="form-control" id="productImage" name="imageFile" accept="image/*">
                 </div>
 
-                <!-- Container para o input de link (inicialmente escondido) -->
                 <div id="linkContainer" class="mb-3 d-none">
                     <input type="url" class="form-control" id="imageUrl" name="imageUrl" placeholder="https://exemplo.com/imagem.jpg">
                     <div class="form-text">Cole a URL completa da imagem aqui.</div>
                 </div>
-                <!-- FIM DA MUDANÇA -->
-
 
                 <div class="form-check form-switch mb-4">
                     <input class="form-check-input" type="checkbox" role="switch" id="productFeatured" name="featured" value="true">
@@ -100,6 +109,9 @@
         </div>
     </div>
 </div>
+
+<!-- MUDANÇA: Adicionada a biblioteca do scanner -->
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 
 <script>
     const productForm = document.getElementById('productForm');
@@ -131,6 +143,41 @@
         }
     });
     // FIM DA MUDANÇA
+
+    const startScanBtn = document.getElementById('start-scan-btn');
+    const stopScanBtn = document.getElementById('stop-scan-btn');
+    const scannerUi = document.getElementById('scanner-ui');
+    const barcodeInput = document.getElementById('productBarcode');
+    const html5QrcodeScanner = new Html5Qrcode("barcode-scanner-container");
+
+    const onScanSuccess = (decodedText, decodedResult) => {
+        console.log(`Código lido: ${decodedText}`);
+        barcodeInput.value = decodedText;
+        html5QrcodeScanner.stop().then(() => {
+            scannerUi.style.display = 'none';
+        }).catch(err => console.error("Erro ao parar o scanner", err));
+    };
+
+    const onScanFailure = (error) => { /* Ignorar falhas contínuas */ };
+
+    startScanBtn.addEventListener('click', () => {
+        scannerUi.style.display = 'block';
+        html5QrcodeScanner.start(
+            { facingMode: "environment" },
+            { fps: 10, qrbox: { width: 250, height: 150 } },
+            onScanSuccess,
+            onScanFailure
+        ).catch(err => {
+            alert("Não foi possível iniciar o scanner. Verifique as permissões da câmera.");
+            scannerUi.style.display = 'none';
+        });
+    });
+
+    stopScanBtn.addEventListener('click', () => {
+        html5QrcodeScanner.stop().then(() => {
+            scannerUi.style.display = 'none';
+        }).catch(err => console.error("Erro ao parar o scanner", err));
+    });
 
     // Adicionamos uma verificação ao carregar a página
     document.addEventListener('DOMContentLoaded', () => {

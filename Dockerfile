@@ -10,13 +10,16 @@ COPY .mvn .mvn/
 COPY mvnw .
 RUN chmod +x mvnw
 
-# Copia o código fonte da sua aplicação
+# --- PASSO DE VERIFICAÇÃO ---
+# Imprime o valor da variável de ambiente para confirmar que o Render a injetou.
+# Se esta linha imprimir "Verifying username: ", o problema está na configuração do Render.
+# Se imprimir "Verifying username: Japaneixxx", a variável foi lida com sucesso.
+RUN echo "Verifying username: $GITHUB_USERNAME"
+
+# Copia o código fonte
 COPY src ./src
 
-# --- CORREÇÃO PRINCIPAL ---
-# A flag -U força o Maven a verificar por atualizações e ignorar o cache de falhas.
-# O Dockerfile assume que as variáveis GITHUB_USERNAME e GITHUB_TOKEN
-# serão injetadas pelo ambiente de build do Render (configuradas no Passo 1).
+# Executa o build. A flag -U força a verificação de dependências.
 RUN --mount=type=cache,target=/root/.m2 ./mvnw -s settings.xml -U clean install -DskipTests
 
 # Estágio 2: Execução

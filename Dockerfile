@@ -1,35 +1,36 @@
-# Estágio de Build: Para construir o JAR da aplicação
+# Estágio 1: Build com Maven
 FROM maven:3.9.6-eclipse-temurin-17-alpine AS build
 
 WORKDIR /app
 
+# NOVO: Copia o arquivo de configurações do Maven para dentro do container.
+# Este arquivo contém as credenciais para acessar o GitHub Packages.
+COPY settings.xml .
+
+# Copia os arquivos do Maven Wrapper e o pom.xml
 COPY pom.xml .
 COPY .mvn .mvn/
 COPY mvnw .
 
-# NOVO: Garante que o script mvnw tem permissões de execução.
-# Se este comando falhar, o erro será mais específico.
+# Garante que o script mvnw tem permissões de execução.
 RUN chmod +x mvnw
 
-# NOVO: Adiciona uma verificação para depuração se o mvnw existe
-# Remova esta linha após o problema ser resolvido
-# RUN ls -l mvnw || echo "mvnw not found in /app"
+# Baixa as dependências do Maven usando o settings.xml para autenticação.
+# A flag "-s settings.xml" é a chave para a solução.
+RUN --mount=type=cache,target=/root/.m2 ./mvnw -s settings.xml dependency:go-offline
 
-# Baixa as dependências do Maven (irá usar o cache se nada mudou no pom.xml)
-# O comando agora está separado do chmod
-RUN --mount=type=cache,target=/root/.m2 ./mvnw dependency:go-offline
-
-# Copia o código fonte da sua aplicação
+# Copia o resto do código fonte da sua aplicação
 COPY src ./src
 
-# Compila e empacota a aplicação em um JAR executável
-RUN ./mvnw clean install -DskipTests
+# Compila e empacota a aplicação, também usando o settings.xml
+RUN ./mvnw -s settings.xml clean install -DskipTests
 
-# Estágio de Execução: Para rodar a aplicação
+# Estágio 2: Execução (nenhuma mudança necessária aqui)
 FROM eclipse-temurin:17-jre-alpine
 
 WORKDIR /app
 
+# Ajuste o nome do JAR se for diferente do gerado pelo seu pom.xml
 COPY --from=build /app/target/pagueleve-0.0.1-SNAPSHOT.jar app.jar
 
 EXPOSE 8080

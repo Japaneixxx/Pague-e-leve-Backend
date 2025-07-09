@@ -10,12 +10,13 @@ COPY mvnw .
 RUN chmod +x mvnw
 COPY src ./src
 
-# --- PASSO DE INVESTIGAÇÃO ---
-# Vamos listar o conteúdo do diretório de segredos para descobrir onde o Render montou o arquivo.
-RUN ls -la /etc/secrets/
+# --- PASSO DE VERIFICAÇÃO FINAL ---
+# Lista os arquivos no diretório de trabalho atual (/app)
+# Se o Secret File foi montado aqui, veremos o "settings.xml" na lista.
+RUN ls -la
 
-# O comando abaixo vai falhar, mas o comando 'ls' acima nos dará a informação que precisamos.
-RUN --mount=type=cache,target=/root/.m2 ./mvnw -s /etc/secrets/settings.xml -U clean install -DskipTests
+# Executa o build usando o settings.xml do diretório atual.
+RUN --mount=type=cache,target=/root/.m2 ./mvnw -s settings.xml -U clean install -DskipTests
 
 # Estágio 2: Execução
 FROM eclipse-temurin:17-jre-alpine

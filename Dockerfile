@@ -13,19 +13,24 @@ COPY mvnw .
 RUN chmod +x mvnw
 COPY src ./src
 
-# --- TESTE DIAGNÓSTICO FINAL (FORÇA BRUTA) ---
-# Cria o settings.xml diretamente no container com as credenciais hardcoded.
-# ISTO NÃO É SEGURO PARA PRODUÇÃO, É APENAS PARA ISOLAR O PROBLEMA.
-# Substitua 'ghp_SEU_TOKEN_AQUI' pelo seu token real e válido.
-RUN echo '<settings><servers><server><id>github</id><username>Japaneixxx</username><password>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</password></server></servers></settings>' > /app/settings.xml
+# --- SOLUÇÃO: INSTALAÇÃO MANUAL DA DEPENDÊNCIA ---
+# 1. Copia o arquivo .jar da sua API (que você vai adicionar ao projeto) para dentro do container.
+#    Você precisa criar uma pasta 'libs' no seu projeto e colocar o pix-gen-api-1.0.0.jar dentro dela.
+COPY libs/pix-gen-api-1.0.0.jar /app/pix-gen-api.jar
 
-# --- VERIFICAÇÃO ---
-# Imprime o conteúdo do arquivo para garantir que foi criado corretamente.
-RUN cat /app/settings.xml
+# 2. Usa o Maven para instalar este arquivo .jar no repositório local do container.
+#    Quando o Maven for construir o projeto, ele encontrará a dependência aqui e não tentará baixá-la do GitHub.
+RUN ./mvnw install:install-file \
+    -Dfile=/app/pix-gen-api.jar \
+    -DgroupId=com.japaneixxx \
+    -DartifactId=pix-gen-api \
+    -Dversion=1.0.0 \
+    -Dpackaging=jar
 
-# Executa o build usando o arquivo que acabamos de criar.
+# 3. Executa o build normalmente.
+#    Agora, o Maven não precisa mais de um settings.xml, pois a dependência já está "offline".
 RUN --mount=type=cache,target=/root/.m2/repository \
-    ./mvnw -s /app/settings.xml -U clean install -DskipTests
+    ./mvnw -U clean install -DskipTests
 
 # Estágio 2: Execução
 FROM eclipse-temurin:17-jre-alpine

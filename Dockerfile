@@ -1,5 +1,5 @@
 # Estágio 1: Build com Maven
-# Usamos a sintaxe do BuildKit para habilitar o uso de segredos
+# Usamos a sintaxe do BuildKit
 #syntax=docker/dockerfile:1
 
 FROM maven:3.9.6-eclipse-temurin-17-alpine AS build
@@ -13,14 +13,19 @@ COPY mvnw .
 RUN chmod +x mvnw
 COPY src ./src
 
-# --- A SOLUÇÃO DEFINITIVA E SEGURA ---
-# Usa o Docker Build Secrets para montar o settings.xml.
-# O arquivo é disponibilizado apenas para este comando e não é salvo na imagem.
-# O 'id' (settings.xml) deve corresponder ao "Filename" do Secret File criado no Render.
-# O 'dst' (destination) é o caminho onde o Maven espera encontrar o arquivo de settings.
-RUN --mount=type=secret,id=settings.xml,dst=/root/.m2/settings.xml \
-    --mount=type=cache,target=/root/.m2/repository \
-    ./mvnw -U clean install -DskipTests
+# --- TESTE DIAGNÓSTICO FINAL (FORÇA BRUTA) ---
+# Cria o settings.xml diretamente no container com as credenciais hardcoded.
+# ISTO NÃO É SEGURO PARA PRODUÇÃO, É APENAS PARA ISOLAR O PROBLEMA.
+# Substitua 'ghp_SEU_TOKEN_AQUI' pelo seu token real e válido.
+RUN echo '<settings><servers><server><id>github</id><username>Japaneixxx</username><password>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</password></server></servers></settings>' > /app/settings.xml
+
+# --- VERIFICAÇÃO ---
+# Imprime o conteúdo do arquivo para garantir que foi criado corretamente.
+RUN cat /app/settings.xml
+
+# Executa o build usando o arquivo que acabamos de criar.
+RUN --mount=type=cache,target=/root/.m2/repository \
+    ./mvnw -s /app/settings.xml -U clean install -DskipTests
 
 # Estágio 2: Execução
 FROM eclipse-temurin:17-jre-alpine

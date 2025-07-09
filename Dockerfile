@@ -14,6 +14,11 @@ COPY mvnw .
 RUN chmod +x mvnw
 COPY src ./src
 
+# --- PASSO DE INVESTIGAÇÃO FINAL ---
+# Imprime todas as variáveis de ambiente para vermos o que o Render está fornecendo.
+# Vamos procurar por GITHUB_USERNAME e GITHUB_TOKEN na saída deste comando.
+RUN printenv
+
 # Executa o build. O Maven, dentro do container, irá ler as variáveis de ambiente
 # GITHUB_USERNAME e GITHUB_TOKEN que foram configuradas no painel do Render.
 RUN --mount=type=cache,target=/root/.m2 ./mvnw -s settings.xml -U clean install -DskipTests

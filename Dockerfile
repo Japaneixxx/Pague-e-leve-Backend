@@ -13,24 +13,19 @@ COPY mvnw .
 RUN chmod +x mvnw
 COPY src ./src
 
-# --- SOLUÇÃO: INSTALAÇÃO MANUAL DA DEPENDÊNCIA ---
-# 1. Copia o arquivo .jar da sua API (que você vai adicionar ao projeto) para dentro do container.
-#    Você precisa criar uma pasta 'libs' no seu projeto e colocar o pix-gen-api-1.0.0.jar dentro dela.
+# Copia o .jar e o .pom da sua API para dentro do container.
 COPY libs/pix-gen-api-1.0.0.jar /app/pix-gen-api.jar
+COPY libs/pix-gen-api-1.0.0.pom /app/pix-gen-api.pom
 
-# 2. Usa o Maven para instalar este arquivo .jar no repositório local do container.
-#    Quando o Maven for construir o projeto, ele encontrará a dependência aqui e não tentará baixá-la do GitHub.
-RUN ./mvnw install:install-file \
-    -Dfile=/app/pix-gen-api.jar \
-    -DgroupId=com.japaneixxx \
-    -DartifactId=pix-gen-api \
-    -Dversion=1.0.0 \
-    -Dpackaging=jar
-
-# 3. Executa o build normalmente.
-#    Agora, o Maven não precisa mais de um settings.xml, pois a dependência já está "offline".
-RUN --mount=type=cache,target=/root/.m2/repository \
-    ./mvnw -U clean install -DskipTests
+# --- SOLUÇÃO DEFINITIVA ---
+# Combina a instalação manual e o build em um único comando RUN.
+# Isso garante que a dependência seja instalada no repositório local
+# e o build a utilize em seguida, sem tentar acessar a internet para isso.
+RUN --mount=type=cache,target=/root/.m2 \
+    ./mvnw install:install-file \
+        -Dfile=/app/pix-gen-api.jar \
+        -DpomFile=/app/pix-gen-api.pom \
+    && ./mvnw -U clean install -DskipTests
 
 # Estágio 2: Execução
 FROM eclipse-temurin:17-jre-alpine

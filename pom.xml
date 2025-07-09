@@ -78,14 +78,14 @@
 		</dependency>
 	</dependencies>
 
-	<repositories>
-		<repository>
-			<id>github</id>
-			<name>GitHub Packages</name>
-			<!-- A URL exata do seu repositório de pacotes -->
-			<url>https://maven.pkg.github.com/Japaneixxx/Pix-Gen-API</url>
-		</repository>
-	</repositories>
+<!--	<repositories>-->
+<!--		<repository>-->
+<!--			<id>github</id>-->
+<!--			<name>GitHub Packages</name>-->
+<!--			&lt;!&ndash; A URL exata do seu repositório de pacotes &ndash;&gt;-->
+<!--			<url>https://maven.pkg.github.com/Japaneixxx/Pix-Gen-API</url>-->
+<!--		</repository>-->
+<!--	</repositories>-->
 
 	<build>
 		<plugins>

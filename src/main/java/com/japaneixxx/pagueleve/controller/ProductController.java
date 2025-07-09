@@ -4,6 +4,7 @@ import com.japaneixxx.pagueleve.model.Product;
 import com.japaneixxx.pagueleve.model.Store;
 import com.japaneixxx.pagueleve.service.ImageUploadService;
 import com.japaneixxx.pagueleve.service.ProductService;
+import com.japaneixxx.util.PixGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +14,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import com.japaneixxx.pagueleve.util.PixGenerator;
+
 import java.math.BigDecimal;
 
 
@@ -228,7 +229,7 @@ public class ProductController {
                     store.getPix(),
                     total,
                     store.getName(),
-                    "SAO PAULO", // A cidade é obrigatória pelo padrão do BACEN
+                    "BELO HORIZONTE", // A cidade é obrigatória pelo padrão do BACEN
                     "***" // txid estático para pagamentos sem ID de transação único
             );
 

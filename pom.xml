@@ -49,6 +49,11 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>com.japaneixxx</groupId>
+			<artifactId>pix-gen-api</artifactId>
+			<version>1.0.0</version>
+		</dependency>
 
 		<dependency>
 			<groupId>com.cloudinary</groupId>
@@ -72,6 +77,15 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
+
+	<repositories>
+		<repository>
+			<id>github</id>
+			<name>GitHub Packages</name>
+			<!-- A URL exata do seu repositório de pacotes -->
+			<url>https://maven.pkg.github.com/Japaneixxx/Pix-Gen-API</url>
+		</repository>
+	</repositories>
 
 	<build>
 		<plugins>

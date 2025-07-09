@@ -13,6 +13,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import com.japaneixxx.pagueleve.util.PixGenerator;
+import java.math.BigDecimal;
+
+
 
 import java.io.IOException;
 import java.util.List;
@@ -195,6 +199,49 @@ public class ProductController {
         } catch (Exception e) {
             log.error("Erro ao tentar excluir o produto {}", productId, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Não foi possível excluir o produto.");
+        }
+    }
+
+    /**
+     * Prepara e exibe a página de checkout com os dados do PIX.
+     * Acessível via: GET /{storeId}/checkout?total=XX.XX
+     * VERSÃO ATUALIZADA USANDO NOSSO PRÓPRIO GERADOR DE PIX.
+     */
+    @GetMapping("/{storeId}/checkout")
+    public String showCheckoutPage(@PathVariable Long storeId,
+                                   @RequestParam("total") BigDecimal total,
+                                   Model model) {
+
+        Optional<Store> storeOptional = productService.findStoreById(storeId);
+
+        if (storeOptional.isEmpty() || storeOptional.get().getPix() == null || storeOptional.get().getPix().isBlank()) {
+            model.addAttribute("error", "A loja não está configurada para receber pagamentos via PIX.");
+            return "errorTemplate";
+        }
+
+        Store store = storeOptional.get();
+
+        try {
+            // --- LÓGICA ATUALIZADA ---
+            // Usando nossa própria classe para gerar o código
+            String brCode = PixGenerator.generatePayload(
+                    store.getPix(),
+                    total,
+                    store.getName(),
+                    "SAO PAULO", // A cidade é obrigatória pelo padrão do BACEN
+                    "***" // txid estático para pagamentos sem ID de transação único
+            );
+
+            model.addAttribute("store", store);
+            model.addAttribute("totalAmount", total);
+            model.addAttribute("brCode", brCode);
+
+            return "checkout";
+
+        } catch (Exception e) {
+            log.error("Erro ao gerar o código PIX para a loja {}", storeId, e);
+            model.addAttribute("error", "Ocorreu um erro ao gerar o código de pagamento PIX.");
+            return "errorTemplate";
         }
     }
 

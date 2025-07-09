@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finalizar Pagamento PIX</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f0f2f5; }
+        .checkout-card { max-width: 450px; margin: 3rem auto; }
+        #qrcode {
+            width: 256px;
+            height: 256px;
+            margin: 1rem auto;
+            border: 5px solid #fff;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        #brCodeText {
+            font-family: monospace;
+            font-size: 0.8rem;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="card checkout-card text-center shadow-sm">
+        <div class="card-header">
+            <h4 class="mb-0">Pagamento via PIX</h4>
+        </div>
+        <div class="card-body">
+            <p>Pague para <strong th:text="${store.name}">Nome da Loja</strong></p>
+            <h1 class="card-title" th:text="${#numbers.formatCurrency(totalAmount)}">R$ 0,00</h1>
+
+            <!-- O QR Code será gerado aqui pelo JavaScript -->
+            <div id="qrcode" class="my-3"></div>
+            <p class="text-muted">Aponte a câmera do seu celular para o QR Code</p>
+
+            <hr>
+
+            <p class="fw-bold">Ou use o PIX Copia e Cola:</p>
+            <div class="input-group mb-3">
+                <textarea id="brCodeText" class="form-control" rows="4" readonly th:text="${brCode}"></textarea>
+                <button class="btn btn-outline-secondary" type="button" id="copyButton" title="Copiar código">
+                    <i class="bi bi-clipboard"></i>
+                </button>
+            </div>
+
+            <div class="alert alert-success d-none" id="copy-success-message" role="alert">
+                Código copiado para a área de transferência!
+            </div>
+        </div>
+        <div class="card-footer text-muted">
+            Após o pagamento, o lojista dará baixa na sua compra.
+        </div>
+    </div>
+</div>
+
+<!-- Biblioteca para gerar o QR Code no navegador -->
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const brCodeTextElement = document.getElementById('brCodeText');
+        const qrcodeContainer = document.getElementById('qrcode');
+        const copyButton = document.getElementById('copyButton');
+        const copySuccessMessage = document.getElementById('copy-success-message');
+
+        // 1. Gera o QR Code a partir do texto "Copia e Cola"
+        if (brCodeTextElement && brCodeTextElement.value) {
+            new QRCode(qrcodeContainer, {
+                text: brCodeTextElement.value,
+                width: 256,
+                height: 256,
+                colorDark : "#000000",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.H
+            });
+        }
+
+        // 2. Adiciona a funcionalidade de copiar ao botão
+        copyButton.addEventListener('click', () => {
+            brCodeTextElement.select();
+            document.execCommand('copy');
+
+            // Mostra uma mensagem de sucesso
+            copySuccessMessage.classList.remove('d-none');
+            setTimeout(() => {
+                copySuccessMessage.classList.add('d-none');
+            }, 2000); // Esconde a mensagem após 2 segundos
+        });
+    });
+</script>
+
+</body>
+</html>

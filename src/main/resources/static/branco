@@ -1,174 +1,156 @@
-<!DOCTYPE html>
-<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<!-- ... (todo o HTML do seu arquivo cart.html) ... -->
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pague e leve - <span th:text="${store.name}">Nome da Loja</span></title>
-    <!-- MUDANÇA: Ícone de leitor de código de barras adicionado -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        .bg { background-color: #25CF03; }
-        .space5 { height: 5vh; }
-        .space15 { height: 10vh; }
-        .card-img-top-fix { width: 100%; height: 120px; object-fit: cover; }
-        /* MUDANÇA: Estilo para o container do scanner */
-        #barcode-scanner-container { width: 100%; max-width: 500px; margin: auto; }
-    </style>
-</head>
-
-<body class="bg">
-<div class="container text-center ">
-    <div class="row">
-        <div class="space5"></div>
-        <div class="">
-            <a class="btn btn-dark rounded-5" th:href="@{/{storeId}/cart(storeId=${currentStoreId})}" id="carrinho" role="button">Ver Carrinho <i class="bi bi-cart"></i></a>
-        </div>
-        <div class="space15"></div>
-        <div class="">
-            <h1>Bem Vind@ <br>ao <span th:text="${store.name}">Nome da Loja</span></h1>
-            <input type="hidden" id="storeIdData" th:value="${currentStoreId}" />
-        </div>
-        <div class="space15"></div>
-
-        <!-- MUDANÇA: Adicionado botão de escanear -->
-        <div class="input-group mb-3">
-            <input type="text" class="form-control rounded-start-5" id="searchInput" placeholder="Digite o código ou nome do produto">
-            <button class="btn bg-light" type="button" id="searchButton"><i class="bi bi-search"></i></button>
-            <button class="btn btn-success rounded-end-5" type="button" id="start-scan-btn" title="Escanear Código de Barras">
-                <i class="bi bi-upc-scan"></i>
-            </button>
-        </div>
-
-        <!-- MUDANÇA: Container para o leitor de código de barras e mensagens -->
-        <div id="scanner-ui" class="mt-3" style="display: none;">
-            <div id="barcode-scanner-container"></div>
-            <button id="stop-scan-btn" class="btn btn-danger mt-2">Parar Scanner</button>
-        </div>
-        <div id="scan-result-message" class="mt-2"></div>
-
-
-        <div class="text-end">
-            <a th:href="@{/{storeId}/produtos(storeId=${currentStoreId})}" type="button" class="btn btn-dark rounded-pill">Ver todos</a>
-        </div>
-        <div class="space15"></div>
-
-        <div class="card text-start rounded-top-4">
-            <h5 class="card-header" id="searchSectionTitle">Destaques</h5>
-            <div class="card-body">
-                <div class="row row-cols-3" id="highlightedProductsContainer">
-                    <!-- Conteúdo dos produtos em destaque (sem alteração) -->
-                    <div th:if="${highlightedProducts.empty}" class="col-12 initial-display" th:remove="tag">
-                        <div class="alert alert-info text-center" role="alert">
-                            Nenhum produto em destaque no momento.
-                        </div>
-                    </div>
-                    <div class="col initial-display" th:each="product : ${highlightedProducts}">
-                        <a th:href="@{/produto/{productId}(productId=${product.id}, storeId=${product.store.id})}" class="text-reset text-decoration-none">
-                        <div class="card h-100">
-                            <img th:src="${product.imageUrl ?: '/images/placeholder.png'}" class="card-img-top card-img-top-fix" th:alt="${product.name}">
-                            <div class="card-body fw-light d-flex flex-column">
-                                <h5 class="card-title" th:text="${product.name}">Nome Produto</h5>
-                                <p class="card-text" th:text="${product.description} ?: 'Sem descrição.'">Descrição breve</p>
-                                <h6 class="card-subtitle mb-2 text-body-secondary text-success mt-auto" th:text="${'R$ ' + #numbers.formatDecimal(product.price, 1, 2,'COMMA')}">R$ 0,00</h6>
-                                <a th:href="@{/produto/{productId}(productId=${product.id}, storeId=${product.store.id})}" class="btn btn-primary mt-3">Detalhes</a>
-                            </div>
-                        </div>
-                        </a>
-                    </div>
+<!-- Adicione este Modal do Bootstrap no final do seu body, antes dos scripts -->
+<div class="modal fade" id="pixModal" tabindex="-1" aria-labelledby="pixModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="pixModalLabel">Pague com PIX</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <p>Escaneie o QR Code com o app do seu banco:</p>
+                <!-- O QR Code será gerado aqui por uma biblioteca -->
+                <div id="qrcode-container" class="mb-3"></div>
+                <p class="fw-bold">Valor: <span id="pix-amount"></span></p>
+                <hr>
+                <p>Ou use o PIX Copia e Cola:</p>
+                <div class="input-group">
+                    <input type="text" id="pix-brcode" class="form-control" readonly>
+                    <button class="btn btn-outline-secondary" id="copy-pix-btn">
+                        <i class="bi bi-clipboard"></i> Copiar
+                    </button>
                 </div>
+                <div id="copy-success-message" class="text-success mt-2 d-none">Código copiado!</div>
             </div>
         </div>
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"></script>
-<!-- MUDANÇA: Adicionada a biblioteca de leitura de QR/Código de Barras -->
-<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+<!-- Inclua a biblioteca para gerar o QR Code -->
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator/qrcode.js"></script>
 
 <script>
-    // Script de busca existente (sem alteração)
     document.addEventListener('DOMContentLoaded', () => {
-        // ... (seu código de busca existente)
-    });
+        const cartItemsContainer = document.getElementById('cart-items-container');
+        const cartTotalElement = document.getElementById('cart-total');
+        const clearCartButton = document.getElementById('clearCartButton');
+        const backButton = document.getElementById('backButton');
+        const finishButton = document.getElementById('finish');
 
-    // MUDANÇA: Novo script para o scanner de código de barras
-    document.addEventListener('DOMContentLoaded', () => {
-        const startScanBtn = document.getElementById('start-scan-btn');
-        const stopScanBtn = document.getElementById('stop-scan-btn');
-        const scannerUi = document.getElementById('scanner-ui');
-        const messageContainer = document.getElementById('scan-result-message');
         const currentStoreId = document.getElementById('storeIdData').value;
+        const cartKey = `cartItems_${currentStoreId}`;
 
-        // Configuração do scanner
-        const html5QrcodeScanner = new Html5Qrcode("barcode-scanner-container");
+        const getCart = () => JSON.parse(sessionStorage.getItem(cartKey)) || [];
 
-        const onScanSuccess = async (decodedText, decodedResult) => {
-            // Para o scanner assim que um código é lido com sucesso
-            html5QrcodeScanner.stop().then(() => {
-                scannerUi.style.display = 'none';
-                console.log(`Código lido: ${decodedText}`);
-                messageContainer.innerHTML = `<div class="alert alert-info">Código ${decodedText} lido. Buscando produto...</div>`;
+        const renderCart = () => {
+            const cart = getCart();
+            let totalPrice = 0;
+            cartItemsContainer.innerHTML = '';
 
-                // Chama nossa API para buscar o produto
-                fetch(`/api/products/barcode/${decodedText}?storeId=${currentStoreId}`)
-                    .then(response => {
-                        if (response.ok) {
-                            return response.json();
-                        }
-                        if (response.status === 404) {
-                            throw new Error('Produto não encontrado.');
-                        }
-                        throw new Error('Erro ao buscar o produto.');
-                    })
-                    .then(product => {
-                        // Se encontrou, redireciona para a página do produto
-                        messageContainer.innerHTML = `<div class="alert alert-success">Produto encontrado! Redirecionando...</div>`;
-                        window.location.href = `/produto/${product.id}?storeId=${product.store.id}`;
-                    })
-                    .catch(error => {
-                        console.error('Erro:', error);
-                        messageContainer.innerHTML = `<div class="alert alert-danger">${error.message}</div>`;
-                    });
-            });
+            if (cart.length > 0) {
+                cart.forEach(item => {
+                    const itemSubtotal = item.price * item.quantity;
+                    totalPrice += itemSubtotal;
+                    const cardHtml = `
+                        <div class="card mb-2 cart-item-card">
+                            <div class="card-body d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h5 class="card-title mb-0">${item.name} <span class="badge bg-secondary">x${item.quantity}</span></h5>
+                                    <small class="text-muted">ID: ${item.id}</small>
+                                </div>
+                                <p class="card-text fw-bold mb-0">${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(itemSubtotal)}</p>
+                            </div>
+                        </div>`;
+                    cartItemsContainer.insertAdjacentHTML('beforeend', cardHtml);
+                });
+                finishButton.classList.remove('disabled');
+            } else {
+                cartItemsContainer.innerHTML = `
+                    <div class="text-center my-5">
+                        <img src="/images/EmptyCart.png" alt="Carrinho Vazio" class="img-fluid" style="max-width: 150px;">
+                        <p class="mt-3 fs-5 text-muted">Seu carrinho está vazio.</p>
+                    </div>`;
+                finishButton.classList.add('disabled');
+            }
+            const formattedTotalPrice = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalPrice);
+            cartTotalElement.textContent = `Total: ${formattedTotalPrice}`;
         };
 
-        const onScanFailure = (error) => {
-            // A biblioteca chama isso constantemente, então não mostramos erro na tela, apenas no console.
-            // console.warn(`Falha na leitura do código: ${error}`);
-        };
+        renderCart();
 
-        startScanBtn.addEventListener('click', () => {
-            scannerUi.style.display = 'block';
-            messageContainer.innerHTML = ''; // Limpa mensagens antigas
-            // Inicia a câmera e o scanner
-            html5QrcodeScanner.start(
-                { facingMode: "environment" }, // Usa a câmera traseira
-                {
-                    fps: 10, // Frames por segundo
-                    qrbox: { width: 250, height: 150 } // Tamanho da caixa de leitura
-                },
-                onScanSuccess,
-                onScanFailure
-            ).catch(err => {
-                console.error("Não foi possível iniciar o scanner", err);
-                scannerUi.style.display = 'none';
-                messageContainer.innerHTML = `<div class="alert alert-danger">Não foi possível acessar a câmera. Verifique as permissões.</div>`;
-            });
+        // --- LÓGICA DO CHECKOUT SEGURO ---
+        finishButton.addEventListener('click', async (event) => {
+            event.preventDefault();
+            if (finishButton.classList.contains('disabled')) return;
+
+            const cartItems = getCart().map(item => ({ id: item.id, quantity: item.quantity }));
+
+            try {
+                const response = await fetch(`/${currentStoreId}/api/checkout`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(cartItems)
+                });
+
+                if (response.ok) {
+                    const pixData = await response.json();
+                    displayPixModal(pixData.brCode, pixData.totalAmount);
+                } else {
+                    const errorText = await response.text();
+                    alert(`Erro ao finalizar a compra: ${errorText}`);
+                }
+            } catch (error) {
+                console.error('Erro de rede:', error);
+                alert('Não foi possível conectar ao servidor. Tente novamente.');
+            }
         });
 
-        stopScanBtn.addEventListener('click', () => {
-            html5QrcodeScanner.stop().then(() => {
-                scannerUi.style.display = 'none';
-                messageContainer.innerHTML = '';
-                console.log("Scanner parado pelo usuário.");
-            }).catch(err => {
-                console.error("Falha ao parar o scanner.", err);
-                scannerUi.style.display = 'none';
+        function displayPixModal(brCode, totalAmount) {
+            const pixModal = new bootstrap.Modal(document.getElementById('pixModal'));
+            const qrContainer = document.getElementById('qrcode-container');
+            const amountElement = document.getElementById('pix-amount');
+            const brCodeInput = document.getElementById('pix-brcode');
+            const copyBtn = document.getElementById('copy-pix-btn');
+            const copySuccessMsg = document.getElementById('copy-success-message');
+
+            // Preenche os dados no modal
+            amountElement.textContent = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalAmount);
+            brCodeInput.value = brCode;
+            qrContainer.innerHTML = ''; // Limpa QR code antigo
+
+            // Gera o novo QR Code
+            const typeNumber = 0; // Auto-detect
+            const errorCorrectionLevel = 'L';
+            const qr = qrcode(typeNumber, errorCorrectionLevel);
+            qr.addData(brCode);
+            qr.make();
+            qrContainer.innerHTML = qr.createImgTag(4, 8); // (tamanho do módulo, margem)
+
+            copyBtn.onclick = () => {
+                brCodeInput.select();
+                document.execCommand('copy');
+                copySuccessMsg.classList.remove('d-none');
+                setTimeout(() => copySuccessMsg.classList.add('d-none'), 2000);
+            };
+
+            pixModal.show();
+        }
+
+        if (clearCartButton) {
+            clearCartButton.addEventListener('click', () => {
+                if (confirm('Tem certeza que deseja remover todos os itens do carrinho?')) {
+                    sessionStorage.removeItem(cartKey);
+                    renderCart();
+                }
             });
-        });
+        }
+
+        if (backButton) {
+            backButton.addEventListener('click', (event) => {
+                event.preventDefault();
+                window.history.back();
+            });
+        }
     });
 </script>
-</body>
-</html>

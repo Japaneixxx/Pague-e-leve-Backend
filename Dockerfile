@@ -3,25 +3,31 @@ FROM maven:3.9.6-eclipse-temurin-17-alpine AS build
 
 WORKDIR /app
 
-# Copia o settings.xml do seu projeto para dentro do container.
-# Este arquivo DEVE existir na raiz do seu projeto e usar variáveis de ambiente.
+# Copia o settings.xml do seu projeto. Ele vai funcionar como um template.
 COPY settings.xml .
 
-# Copia os arquivos de build e o código fonte
+# Copia o resto dos arquivos de build e o código fonte
 COPY pom.xml .
 COPY .mvn .mvn/
 COPY mvnw .
 RUN chmod +x mvnw
 COPY src ./src
 
-# --- PASSO DE INVESTIGAÇÃO FINAL ---
-# Imprime todas as variáveis de ambiente para vermos o que o Render está fornecendo.
-# Vamos procurar por GITHUB_USERNAME e GITHUB_TOKEN na saída deste comando.
-RUN printenv
+# --- A SOLUÇÃO DEFINITIVA ---
+# Usa o comando 'sed' para ler o settings.xml como um template,
+# substituir os placeholders com os valores das variáveis de ambiente do Render,
+# e criar um novo arquivo 'settings-final.xml' com as credenciais corretas.
+RUN sed -e "s|\${env.GITHUB_USERNAME}|${GITHUB_USERNAME}|" \
+        -e "s|\${env.GITHUB_TOKEN}|${GITHUB_TOKEN}|" \
+        settings.xml > settings-final.xml
 
-# Executa o build. O Maven, dentro do container, irá ler as variáveis de ambiente
-# GITHUB_USERNAME e GITHUB_TOKEN que foram configuradas no painel do Render.
-RUN --mount=type=cache,target=/root/.m2 ./mvnw -s settings.xml -U clean install -DskipTests
+# --- PASSO DE VERIFICAÇÃO (OPCIONAL) ---
+# Imprime o conteúdo do arquivo final para garantir que a substituição funcionou.
+# A saída deste comando NÃO DEVE conter as strings "${env.GITHUB_USERNAME}" ou "${env.GITHUB_TOKEN}".
+RUN echo "Verificando o arquivo settings-final.xml:" && cat settings-final.xml
+
+# Executa o build usando o arquivo de settings que acabamos de gerar.
+RUN --mount=type=cache,target=/root/.m2 ./mvnw -s settings-final.xml -U clean install -DskipTests
 
 # Estágio 2: Execução
 FROM eclipse-temurin:17-jre-alpine

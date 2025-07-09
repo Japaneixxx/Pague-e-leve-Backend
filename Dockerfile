@@ -4,7 +4,7 @@ FROM maven:3.9.6-eclipse-temurin-17-alpine AS build
 # --- PASSO DE DEPURAÇÃO: Defina suas credenciais aqui APENAS PARA ESTE TESTE ---
 # Substitua o valor abaixo pelo seu token real do GitHub
 ARG GITHUB_USERNAME=Japaneixxx
-ARG GITHUB_TOKEN=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
+ARG GITHUB_TOKEN=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
 
 WORKDIR /app
 

@@ -1,29 +1,25 @@
 # Estágio 1: Build com Maven
 FROM maven:3.9.6-eclipse-temurin-17-alpine AS build
 
-# --- PASSO DE DEPURAÇÃO: Defina suas credenciais aqui APENAS PARA ESTE TESTE ---
-# Substitua o valor abaixo pelo seu token real do GitHub
-ARG GITHUB_USERNAME=Japaneixxx
-ARG GITHUB_TOKEN=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
-
 WORKDIR /app
 
-# Cria o settings.xml diretamente no Dockerfile para o teste
-# Isso elimina qualquer erro de cópia ou de leitura de variáveis de ambiente.
-RUN echo "<settings><servers><server><id>github</id><username>${GITHUB_USERNAME}</username><password>${GITHUB_TOKEN}</password></server></servers></settings>" > settings.xml
-
-# --- PASSO DE VERIFICAÇÃO ---
-# Imprime o conteúdo do settings.xml criado para garantir que está correto
-RUN cat settings.xml
-
-# Copia os arquivos de build e o código fonte
+# Copia os arquivos de configuração e build
+# Este settings.xml deve usar as variáveis de ambiente
+# <username>${env.GITHUB_USERNAME}</username>
+# <password>${env.GITHUB_TOKEN}</password>
+COPY settings.xml .
 COPY pom.xml .
 COPY .mvn .mvn/
 COPY mvnw .
 RUN chmod +x mvnw
+
+# Copia o código fonte da sua aplicação
 COPY src ./src
 
-# Executa o build usando o settings.xml que acabamos de criar
+# Executa o build.
+# A flag -U força o Maven a verificar por atualizações e ignorar o cache de falhas.
+# O Dockerfile assume que as variáveis GITHUB_USERNAME e GITHUB_TOKEN
+# serão injetadas pelo ambiente de build do Render.
 RUN --mount=type=cache,target=/root/.m2 ./mvnw -s settings.xml -U clean install -DskipTests
 
 # Estágio 2: Execução

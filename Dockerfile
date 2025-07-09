@@ -3,8 +3,6 @@ FROM maven:3.9.6-eclipse-temurin-17-alpine AS build
 
 WORKDIR /app
 
-# Não precisamos mais copiar o settings.xml, pois o Render vai montá-lo como um arquivo secreto.
-
 # Copia os arquivos de build e o código fonte
 COPY pom.xml .
 COPY .mvn .mvn/
@@ -12,8 +10,11 @@ COPY mvnw .
 RUN chmod +x mvnw
 COPY src ./src
 
-# Executa o build usando o "Secret File" montado pelo Render.
-# O caminho /etc/secrets/settings.xml é o padrão do Render para arquivos secretos.
+# --- PASSO DE INVESTIGAÇÃO ---
+# Vamos listar o conteúdo do diretório de segredos para descobrir onde o Render montou o arquivo.
+RUN ls -la /etc/secrets/
+
+# O comando abaixo vai falhar, mas o comando 'ls' acima nos dará a informação que precisamos.
 RUN --mount=type=cache,target=/root/.m2 ./mvnw -s /etc/secrets/settings.xml -U clean install -DskipTests
 
 # Estágio 2: Execução

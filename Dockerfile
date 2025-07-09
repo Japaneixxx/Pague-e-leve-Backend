@@ -3,24 +3,18 @@ FROM maven:3.9.6-eclipse-temurin-17-alpine AS build
 
 WORKDIR /app
 
-# Copia os arquivos de configuração e build
-# Este settings.xml deve usar as variáveis de ambiente
-# <username>${env.GITHUB_USERNAME}</username>
-# <password>${env.GITHUB_TOKEN}</password>
-COPY settings.xml .
+# Não precisamos mais copiar o settings.xml, pois o Render vai montá-lo como um arquivo secreto.
+
+# Copia os arquivos de build e o código fonte
 COPY pom.xml .
 COPY .mvn .mvn/
 COPY mvnw .
 RUN chmod +x mvnw
-
-# Copia o código fonte da sua aplicação
 COPY src ./src
 
-# Executa o build.
-# A flag -U força o Maven a verificar por atualizações e ignorar o cache de falhas.
-# O Dockerfile assume que as variáveis GITHUB_USERNAME e GITHUB_TOKEN
-# serão injetadas pelo ambiente de build do Render.
-RUN --mount=type=cache,target=/root/.m2 ./mvnw -s settings.xml -U clean install -DskipTests
+# Executa o build usando o "Secret File" montado pelo Render.
+# O caminho /etc/secrets/settings.xml é o padrão do Render para arquivos secretos.
+RUN --mount=type=cache,target=/root/.m2 ./mvnw -s /etc/secrets/settings.xml -U clean install -DskipTests
 
 # Estágio 2: Execução
 FROM eclipse-temurin:17-jre-alpine

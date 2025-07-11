@@ -50,9 +50,9 @@
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>com.japaneixxx</groupId>
-			<artifactId>pix-gen-api</artifactId>
-			<version>1.0.0</version>
+			<groupId>com.github.Japaneixxx</groupId>
+			<artifactId>Pix-Gen-API</artifactId>
+			<version>main-SNAPSHOT</version>
 		</dependency>
 
 		<dependency>
@@ -86,6 +86,12 @@
 <!--			<url>https://maven.pkg.github.com/Japaneixxx/Pix-Gen-API</url>-->
 <!--		</repository>-->
 <!--	</repositories>-->
+	<repositories>
+		<repository>
+			<id>jitpack.io</id>
+			<url>https://jitpack.io</url>
+		</repository>
+	</repositories>
 
 	<build>
 		<plugins>

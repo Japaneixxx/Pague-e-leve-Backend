@@ -1,39 +1,43 @@
-# Estágio 1: Build com Maven
-# Usamos a sintaxe do BuildKit
-#syntax=docker/dockerfile:1
-
-FROM maven:3.9.6-eclipse-temurin-17-alpine AS build
+# =================================================================
+# STAGE 1: O "Construtor" (Builder)
+# Usamos uma imagem oficial que já contém o JDK 17 e o Maven.
+# =================================================================
+FROM maven:3.9-eclipse-temurin-17 AS builder
 
 WORKDIR /app
 
-# Copia os arquivos de build e o código fonte
+# 1. Copia o pom.xml primeiro.
+#    Isso otimiza o cache do Docker: se o pom.xml não mudar,
+#    o Docker reutiliza a camada de dependências já baixadas.
 COPY pom.xml .
-COPY .mvn .mvn/
-COPY mvnw .
-RUN chmod +x mvnw
+
+# 2. Baixa todas as dependências do projeto.
+#    O Maven agora buscará sua biblioteca diretamente do JitPack.
+#    O cache mount acelera builds futuros.
+RUN --mount=type=cache,target=/root/.m2 \
+    mvn dependency:go-offline
+
+# 3. Copia o resto do código-fonte da sua aplicação.
 COPY src ./src
 
-# Copia o .jar e o .pom da sua API para dentro do container.
-COPY libs/pix-gen-api-1.0.0.jar /app/pix-gen-api.jar
-COPY libs/pix-gen-api-1.0.0.pom /app/pix-gen-api.pom
-
-# --- SOLUÇÃO DEFINITIVA ---
-# Combina a instalação manual e o build em um único comando RUN.
-# Isso garante que a dependência seja instalada no repositório local
-# e o build a utilize em seguida, sem tentar acessar a internet para isso.
+# 4. Compila, testa e empacota a aplicação em um .jar executável.
 RUN --mount=type=cache,target=/root/.m2 \
-    ./mvnw install:install-file \
-        -Dfile=/app/pix-gen-api.jar \
-        -DpomFile=/app/pix-gen-api.pom \
-    && ./mvnw -U clean install -DskipTests
+    mvn package -DskipTests
 
-# Estágio 2: Execução
-FROM eclipse-temurin:17-jre-alpine
+# =================================================================
+# STAGE 2: A Imagem Final (Runner)
+# Usamos uma imagem base leve, que contém apenas o Java Runtime (JRE).
+# =================================================================
+FROM eclipse-temurin:17-jre-jammy
 
 WORKDIR /app
 
-COPY --from=build /app/target/pagueleve-0.0.1-SNAPSHOT.jar app.jar
+# Copia APENAS o .jar final que foi gerado no estágio 'builder'.
+# Isso torna a imagem final pequena e limpa.
+COPY --from=builder /app/target/pagueleve-0.0.1-SNAPSHOT.jar app.jar
 
+# Expõe a porta que a sua aplicação Spring Boot usa (padrão é 8080)
 EXPOSE 8080
 
-ENTRYPOINT ["java","-jar","app.jar"]
+# Comando para iniciar a sua aplicação quando o container for executado.
+ENTRYPOINT ["java", "-jar", "app.jar"]

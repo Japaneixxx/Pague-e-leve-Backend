@@ -30,6 +30,7 @@
 		<java.version>17</java.version>
 	</properties>
 
+
 	<dependencies>
 
 		<dependency>
@@ -49,10 +50,11 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
+
 		<dependency>
-			<groupId>com.japaneixxx</groupId>
-			<artifactId>pix-gen-api</artifactId>
-			<version>1.0.0</version>
+			<groupId>com.github.Japaneixxx</groupId>
+			<artifactId>Pix-Gen-API</artifactId>
+			<version>main-SNAPSHOT</version>
 		</dependency>
 
 		<dependency>
@@ -79,11 +81,16 @@
 	</dependencies>
 
 	<repositories>
+<!--		<repository>-->
+<!--			<id>github</id>-->
+<!--			<name>GitHub Packages</name>-->
+<!--			&lt;!&ndash; A URL exata do seu repositório de pacotes &ndash;&gt;-->
+<!--			<url>https://maven.pkg.github.com/Japaneixxx/Pix-Gen-API</url>-->
+<!--		</repository>-->
+
 		<repository>
-			<id>github</id>
-			<name>GitHub Packages</name>
-			<!-- A URL exata do seu repositório de pacotes -->
-			<url>https://maven.pkg.github.com/Japaneixxx/Pix-Gen-API</url>
+			<id>jitpack.io</id>
+			<url>https://jitpack.io</url>
 		</repository>
 	</repositories>
 

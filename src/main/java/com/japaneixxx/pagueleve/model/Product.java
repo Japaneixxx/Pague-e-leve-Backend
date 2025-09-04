@@ -23,8 +23,11 @@ public class Product {
     private String description;
     @Column(name = "price", nullable = false)
     private double price;
+    @Column(name = "old_price")
+    private Double oldPrice;
     @Column(name = "barcode")
     private String codigoDeBarras;
+    
 
     // Define um valor padrão para imageUrl na declaração do campo
     @Column(name = "image_url")
@@ -72,6 +75,13 @@ public class Product {
         this.price = price;
     }
 
+    public Double getOldPrice() {
+        return oldPrice;
+    }
+
+    public void setOldPrice(Double oldPrice) {
+        this.oldPrice = oldPrice;
+    }
 
     public String getImageUrl() {
         return imageUrl;

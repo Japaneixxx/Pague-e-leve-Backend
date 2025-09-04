@@ -48,6 +48,7 @@ public class ProductController {
             @RequestParam("name") String name,
             @RequestParam("description") String description,
             @RequestParam("price") Double price,
+            @RequestParam(value = "oldPrice", required = false) Double oldPrice,
             @RequestParam(value = "featured", required = false, defaultValue = "false") boolean featured,
             @RequestParam(value = "imageFile", required = false) MultipartFile imageFile,
             @RequestParam(value = "imageUrl", required = false) String imageUrl,
@@ -81,6 +82,7 @@ public class ProductController {
             product.setName(name);
             product.setDescription(description);
             product.setPrice(price);
+            product.setOldPrice(oldPrice);
             product.setHighlighted(featured);
             product.setImageUrl(finalImageUrl); // Salva a URL decidida
             product.setCodigoDeBarras(codigoDeBarras);
@@ -126,6 +128,7 @@ public class ProductController {
             @RequestParam("name") String name,
             @RequestParam("description") String description,
             @RequestParam("price") Double price,
+            @RequestParam(value = "oldPrice", required = false) Double oldPrice,
             @RequestParam(value = "featured", required = false, defaultValue = "false") boolean featured,
             @RequestParam(value = "imageFile", required = false) MultipartFile imageFile,
             @RequestParam(value = "imageUrl", required = false) String imageUrl,
@@ -157,6 +160,7 @@ public class ProductController {
             productToUpdate.setName(name);
             productToUpdate.setDescription(description);
             productToUpdate.setPrice(price);
+            productToUpdate.setOldPrice(oldPrice);
             productToUpdate.setHighlighted(featured);
             productToUpdate.setCodigoDeBarras(codigoDeBarras);
 

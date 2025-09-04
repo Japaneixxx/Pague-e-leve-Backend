@@ -1,8 +1,10 @@
 <!DOCTYPE html>
-<html lang="pt-br" xmlns:th="http://www.thymeleaf.org"> <head>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pague e Leve - Seu Carrinho <span th:if="${store}" th:text="${store.name}"></span></title> <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+    <title>Pague e Leve - Seu Carrinho <span th:if="${store}" th:text="${store.name}"></span></title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="/reset.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet"
           integrity="sha384-4Q6Gf2aSP4eDXB8Miphtr37CMZZQ5oXLH2yaXMJ2w8e2ZtHTl7GptT4jmndRuHDT" crossorigin="anonymous">
@@ -23,6 +25,20 @@
 
     .cart-item-card {
         border-left: 5px solid #25CF03; /* Estilo visual para os itens do carrinho */
+    }
+
+    .quantity-control button {
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .quantity-display {
+        min-width: 25px;
+        text-align: center;
     }
 </style>
 
@@ -62,15 +78,43 @@
         const backButton = document.getElementById('backButton');
         const finishButton = document.getElementById('finish');
 
-        // MUDANÇA AQUI: Pega o storeId do campo oculto (passado pelo Thymeleaf)
         const currentStoreId = document.getElementById('storeIdData').value;
-        const cartKey = `cartItems_${currentStoreId}`; // MUDANÇA AQUI: Define a chave do carrinho específica da loja
+        const cartKey = `cartItems_${currentStoreId}`;
 
-        // Função para renderizar o carrinho
+        // --- Funções de Manipulação do Carrinho ---
+
+        const getCart = () => JSON.parse(sessionStorage.getItem(cartKey)) || [];
+        const saveCart = (cart) => sessionStorage.setItem(cartKey, JSON.stringify(cart));
+
+        const updateItemQuantity = (itemId, newQuantity) => {
+            let cart = getCart();
+            const itemIndex = cart.findIndex(item => item.id == itemId);
+
+            if (itemIndex !== -1) {
+                if (newQuantity > 0) {
+                    cart[itemIndex].quantity = newQuantity;
+                } else {
+                    // Remove o item se a quantidade for 0 ou menor
+                    cart.splice(itemIndex, 1);
+                }
+                saveCart(cart);
+                renderCart();
+            }
+        };
+
+        const removeItem = (itemId) => {
+             if (confirm('Tem certeza que deseja remover este item do carrinho?')) {
+                let cart = getCart();
+                const updatedCart = cart.filter(item => item.id != itemId);
+                saveCart(updatedCart);
+                renderCart();
+            }
+        };
+
+
+        // --- Função para Renderizar o Carrinho ---
         const renderCart = () => {
-            let cart = sessionStorage.getItem(cartKey); // MUDANÇA AQUI: Lê da chave específica da loja
-            cart = cart ? JSON.parse(cart) : [];
-
+            let cart = getCart();
             let totalPrice = 0;
             cartItemsContainer.innerHTML = '';
 
@@ -81,12 +125,25 @@
 
                     const cardHtml = `
                         <div class="card mb-2 cart-item-card">
-                            <div class="card-body d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h5 class="card-title mb-0">${item.name} <span class="badge bg-secondary">x${item.quantity}</span></h5>
-                                    <small class="text-muted}>ID: ${item.id}</small>
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h5 class="card-title mb-1">${item.name}</h5>
+                                        <small class="text-muted">ID: ${item.id}</small>
+                                    </div>
+                                    <button class="btn btn-sm btn-outline-danger border-0" onclick="window.removeItem(${item.id})">
+                                        <i class="bi bi-trash-fill"></i>
+                                    </button>
                                 </div>
-                                <p class="card-text fw-bold mb-0">${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(itemSubtotal)}</p>
+                                <hr class="my-2">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center quantity-control">
+                                        <button class="btn btn-secondary btn-sm" onclick="window.updateItemQuantity(${item.id}, ${item.quantity - 1})">-</button>
+                                        <span class="quantity-display mx-2 fw-bold">${item.quantity}</span>
+                                        <button class="btn btn-secondary btn-sm" onclick="window.updateItemQuantity(${item.id}, ${item.quantity + 1})">+</button>
+                                    </div>
+                                    <p class="card-text fw-bold mb-0">${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(itemSubtotal)}</p>
+                                </div>
                             </div>
                         </div>
                     `;
@@ -96,7 +153,7 @@
                 cartItemsContainer.innerHTML = `
                     <div class="text-center my-5">
                         <img src="/images/EmptyCart.png" alt="Carrinho Vazio" class="img-fluid" style="max-width: 150px;">
-                        <p class="mt-3 fs-5 text-muted}>Seu carrinho está vazio.</p>
+                        <p class="mt-3 fs-5 text-muted">Seu carrinho está vazio.</p>
                     </div>
                 `;
                 finishButton.classList.add('disabled');
@@ -106,8 +163,15 @@
 
             if (totalPrice > 0) {
                 finishButton.href = `/${currentStoreId}/checkout?total=${totalPrice.toFixed(2)}`;
+                finishButton.classList.remove('disabled');
+            } else {
+                 finishButton.classList.add('disabled');
             }
         };
+
+        // Expor funções globalmente para serem acessíveis pelo onclick
+        window.updateItemQuantity = updateItemQuantity;
+        window.removeItem = removeItem;
 
         // Chamada inicial para renderizar o carrinho
         renderCart();
@@ -116,22 +180,19 @@
         if (clearCartButton) {
             clearCartButton.addEventListener('click', () => {
                 if (confirm('Tem certeza que deseja remover todos os itens do carrinho?')) {
-                    sessionStorage.removeItem(cartKey); // MUDANÇA AQUI: Remove da chave específica da loja
+                    sessionStorage.removeItem(cartKey);
                     renderCart();
                     alert('Carrinho limpo com sucesso!');
                 }
             });
         }
 
-        // Lógica para o botão "Voltar" (volta para a página anterior)
+        // Lógica para o botão "Voltar"
         if (backButton) {
             backButton.addEventListener('click', (event) => {
                 event.preventDefault();
                 window.history.back();
-                console.log('Navegando de volta para a página anterior do carrinho.');
             });
-        } else {
-            console.error('Erro: Botão "Voltar" com ID "backButton" não encontrado.');
         }
     });
 </script>

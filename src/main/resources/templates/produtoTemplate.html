@@ -34,6 +34,7 @@
             <h5 class="card-title" id="productName" th:text="${product.name}">Nome Produto</h5>
 
             <h6 class="card-subtitle mb-2 text-body-secondary " th:text="${product.description}">informações</h6>
+            <p class="card-text" style="text-decoration: line-through;" th:if="${product.oldPrice != null && product.oldPrice > 0}" th:text="'R$ ' + ${#numbers.formatDecimal(product.oldPrice, 0, 'POINT', 2, 'COMMA')}"></p>
             <p class="card-text" id="productPrice" th:text="'R$ ' + ${#numbers.formatDecimal(product.price, 0, 'POINT', 2, 'COMMA')}">Preço</p>
 
             <a href="javascript:void(0);" id="cancelButton" class="btn btn-light">Voltar</a>

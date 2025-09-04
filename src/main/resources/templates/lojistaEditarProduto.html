@@ -61,6 +61,14 @@
                     </div>
                 </div>
 
+                <div class="mb-3">
+                    <label for="productOldPrice" class="form-label fw-bold">Preço Antigo (Opcional)</label>
+                    <div class="input-group">
+                        <span class="input-group-text">R$</span>
+                        <input type="number" step="0.01" class="form-control" id="productOldPrice" name="oldPrice" th:value="*{oldPrice}" placeholder="29.99">
+                    </div>
+                </div>
+
                 <!-- MUDANÇA: Campo de Código de Barras com Scanner -->
                 <div class="mb-3">
                     <label for="productBarcode" class="form-label fw-bold">Código de Barras (Opcional)</label>

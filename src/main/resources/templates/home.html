@@ -83,6 +83,7 @@
                             <div class="card-body fw-light d-flex flex-column">
                                 <h5 class="card-title" th:text="${product.name}">Nome Produto</h5>
                                 <p class="card-text" th:text="${product.description} ?: 'Sem descrição.'">Descrição breve</p>
+                                <h6 class="card-subtitle mb-2 text-body-secondary" style="text-decoration: line-through;" th:if="${product.oldPrice != null && product.oldPrice > 0}" th:text="${'R$ ' + #numbers.formatDecimal(product.oldPrice, 1, 2,'COMMA')}"></h6>
                                 <h6 class="card-subtitle mb-2 text-body-secondary text-success mt-auto" th:text="${'R$ ' + #numbers.formatDecimal(product.price, 1, 2,'COMMA')}">R$ 0,00</h6>
                                 <a th:href="@{/produto/{productId}(productId=${product.id}, storeId=${product.store.id})}" class="btn btn-primary mt-3">Detalhes</a>
                             </div>
@@ -127,6 +128,11 @@
                     const imageUrl = product.imageUrl || '/images/placeholder.png';
                     const description = product.description || 'Sem descrição.';
                     const priceFormatted = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(product.price).replace('.', ',');
+                    let oldPriceHtml = '';
+                    if (product.oldPrice && product.oldPrice > 0) {
+                        const oldPriceFormatted = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(product.oldPrice).replace('.', ',');
+                        oldPriceHtml = `<h6 class="card-subtitle mb-2 text-body-secondary" style="text-decoration: line-through;">R$ ${oldPriceFormatted}</h6>`;
+                    }
 
                     productsHtml += `
                         <div class="col">
@@ -136,6 +142,7 @@
                                 <div class="card-body fw-light d-flex flex-column">
                                     <h5 class="card-title">${product.name}</h5>
                                     <p class="card-text">${description}</p>
+                                    ${oldPriceHtml}
                                     <h6 class="card-subtitle mb-2 text-body-secondary text-success mt-auto">R$ ${priceFormatted}</h6>
                                     <a href="/produto/${product.id}?storeId=${product.store.id}" class="btn btn-primary mt-3">Detalhes</a>
                                 </div>

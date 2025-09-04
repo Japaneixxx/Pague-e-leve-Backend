@@ -1,4 +1,4 @@
-package com.japaneixxx.config;
+package com.japaneixxx.pagueleve.config;
 
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;

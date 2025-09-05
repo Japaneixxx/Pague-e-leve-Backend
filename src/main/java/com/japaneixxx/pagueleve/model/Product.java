@@ -1,5 +1,6 @@
 package com.japaneixxx.pagueleve.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -8,7 +9,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import jakarta.persistence.FetchType; // Importar FetchType
+import jakarta.persistence.FetchType;
 
 @Entity
 @Table(name = "products")
@@ -27,20 +28,24 @@ public class Product {
     private Double oldPrice;
     @Column(name = "barcode")
     private String codigoDeBarras;
-    
 
-    // Define um valor padrão para imageUrl na declaração do campo
     @Column(name = "image_url")
     private String imageUrl = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRHICWZcFeQ7UuaU7N30-E4Vt1GaTYIU1DIEA&s";
 
-    // Relação ManyToOne com a entidade Store
-    @ManyToOne(fetch = FetchType.EAGER) // Garante que a Store seja sempre carregada junto com o Produto
-    @JoinColumn(name = "store_id", nullable = false) // Mapeia para a coluna 'store_id' no banco de dados como FK
-    private Store store; // Campo que representa a Loja associada
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "store_id", nullable = false)
+    @JsonIgnoreProperties("products")
+    private Store store;
 
-    @Column(name = "destaque", nullable = false) // Coluna 'destaque' no BD
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id") // Permite que a categoria seja nula
+    private Category category;
+
+    @Column(name = "destaque", nullable = false)
     private boolean highlighted;
 
+    @Column(name = "active", nullable = false)
+    private boolean active = true;
 
     // Getters and Setters
     public Long getId() {
@@ -99,6 +104,14 @@ public class Product {
         this.store = store;
     }
 
+    public Category getCategory() {
+        return category;
+    }
+
+    public void setCategory(Category category) {
+        this.category = category;
+    }
+
     public boolean isHighlighted() {
         return highlighted;
     }
@@ -113,5 +126,13 @@ public class Product {
 
     public void setCodigoDeBarras(String codigoDeBarras) {
         this.codigoDeBarras = codigoDeBarras;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
     }
 }

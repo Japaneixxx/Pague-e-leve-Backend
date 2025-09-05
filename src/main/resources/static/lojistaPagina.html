@@ -32,12 +32,23 @@
         </a>
     </div>
 
-    <!-- Container para mensagens (ex: após exclusão) -->
+    <!-- Filters and Search Bar -->
+    <div class="row mb-4 g-3 align-items-end">
+        <div class="col-md-4">
+            <label for="category-filter" class="form-label">Filtrar por Categoria</label>
+            <select id="category-filter" class="form-select">
+                <option value="all">Todas as Categorias</option>
+            </select>
+        </div>
+        <div class="col-md-8">
+            <label for="search-input" class="form-label">Buscar por nome</label>
+            <input type="text" id="search-input" class="form-control" placeholder="Digite o nome do produto...">
+        </div>
+    </div>
+
     <div id="message-container"></div>
 
-    <!-- Container onde os produtos serão carregados dinamicamente -->
     <div id="product-list-container" class="row g-4">
-        <!-- Spinner de carregamento -->
         <div class="text-center" id="loading-spinner">
             <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
                 <span class="visually-hidden">Carregando...</span>
@@ -51,8 +62,11 @@
     document.addEventListener('DOMContentLoaded', async () => {
         const productListContainer = document.getElementById('product-list-container');
         const loadingSpinner = document.getElementById('loading-spinner');
-
+        const categoryFilter = document.getElementById('category-filter');
+        const searchInput = document.getElementById('search-input');
         const storeId = localStorage.getItem('loggedInStoreId');
+
+        let allProducts = []; // To store all products fetched from the server
 
         if (!storeId) {
             alert('Você não está autenticado. Redirecionando para a página de login.');
@@ -60,31 +74,63 @@
             return;
         }
 
+        // Fetch products and categories in parallel
         try {
-            // 1. Busca os produtos da API que criamos
-            const response = await fetch(`/api/stores/${storeId}/products`);
-            if (!response.ok) {
-                throw new Error(`Erro ao buscar produtos: ${response.statusText}`);
-            }
-            const products = await response.json();
+            const [productsResponse, categoriesResponse] = await Promise.all([
+                fetch(`/api/stores/${storeId}/products`),
+                fetch(`/api/categories/${storeId}`)
+            ]);
 
+            if (!productsResponse.ok) {
+                throw new Error(`Erro ao buscar produtos: ${productsResponse.statusText}`);
+            }
+            if (!categoriesResponse.ok) {
+                throw new Error(`Erro ao buscar categorias: ${categoriesResponse.statusText}`);
+            }
+
+            allProducts = await productsResponse.json();
+            const categories = await categoriesResponse.json();
+
+            populateCategoryFilter(categories);
+            applyFiltersAndSearch(); // Initial render
+
+        } catch (error) {
+            console.error('Falha ao carregar dados:', error);
+            loadingSpinner.style.display = 'none';
+            productListContainer.innerHTML = '<div class="alert alert-danger">Não foi possível carregar os dados. Tente recarregar a página.</div>';
+        }
+
+        function populateCategoryFilter(categories) {
+            categories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category.id;
+                option.textContent = category.name;
+                categoryFilter.appendChild(option);
+            });
+        }
+
+        function renderProducts(products) {
             loadingSpinner.style.display = 'none';
             productListContainer.innerHTML = '';
 
             if (products.length === 0) {
+                let message = 'Nenhum produto encontrado com os filtros aplicados.';
+                if (allProducts.length === 0) {
+                    message = `Você ainda não cadastrou nenhum produto. <a href="/lojistaNovoProduto.html" class="alert-link">Clique aqui para adicionar o primeiro!</a>`;
+                }
                 productListContainer.innerHTML = `
                     <div class="col-12">
-                        <div class="alert alert-info text-center">
-                            Você ainda não cadastrou nenhum produto.
-                            <a href="/lojistaNovoProduto.html" class="alert-link">Clique aqui para adicionar o primeiro!</a>
-                        </div>
+                        <div class="alert alert-info text-center">${message}</div>
                     </div>
                 `;
             } else {
-                // 2. Cria um card para cada produto retornado
                 products.forEach(product => {
                     const oldPriceHtml = product.oldPrice && product.oldPrice > 0
                         ? `<p class="card-text text-muted text-decoration-line-through mb-0">${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(product.oldPrice)}</p>`
+                        : '';
+
+                    const categoryHtml = product.category
+                        ? `<p class="card-text"><span class="badge bg-secondary">${product.category.name}</span></p>`
                         : '';
 
                     const productCard = `
@@ -93,6 +139,7 @@
                                 <img src="${product.imageUrl}" class="card-img-top product-image" alt="${product.name}">
                                 <div class="card-body d-flex flex-column">
                                     <h5 class="card-title">${product.name}</h5>
+                                    ${categoryHtml}
                                     ${oldPriceHtml}
                                     <p class="card-text fw-bold text-success fs-5">${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(product.price)}</p>
                                     <div class="mt-auto d-flex justify-content-end gap-2">
@@ -110,56 +157,76 @@
                     productListContainer.insertAdjacentHTML('beforeend', productCard);
                 });
             }
-
-        } catch (error) {
-            console.error('Falha ao carregar produtos:', error);
-            loadingSpinner.style.display = 'none';
-            productListContainer.innerHTML = '<div class="alert alert-danger">Não foi possível carregar os produtos. Tente recarregar a página.</div>';
         }
 
-        // 3. Adiciona os eventos de clique nos botões de excluir
+        function applyFiltersAndSearch() {
+            const selectedCategoryId = categoryFilter.value;
+            const searchText = searchInput.value.toLowerCase();
+
+            let filteredProducts = allProducts;
+
+            // Apply category filter first
+            if (selectedCategoryId !== 'all') {
+                filteredProducts = filteredProducts.filter(p => p.category && p.category.id == selectedCategoryId);
+            }
+
+            // Then apply search filter on the result
+            if (searchText) {
+                filteredProducts = filteredProducts.filter(p => p.name.toLowerCase().includes(searchText));
+            }
+
+            renderProducts(filteredProducts);
+        }
+
+        // Add event listeners for both filters
+        categoryFilter.addEventListener('change', applyFiltersAndSearch);
+        searchInput.addEventListener('input', applyFiltersAndSearch);
+
+        // Event listener for delete buttons
         productListContainer.addEventListener('click', function (event) {
             if (event.target.closest('.delete-btn')) {
                 handleDelete(event.target.closest('.delete-btn'));
             }
         });
-    });
 
-    async function handleDelete(button) {
-        const productId = button.dataset.productId;
-        const storeId = localStorage.getItem('loggedInStoreId');
+        window.handleDelete = async function(button) {
+            const productId = button.dataset.productId;
+            const storeId = localStorage.getItem('loggedInStoreId');
 
-        if (confirm('Tem certeza que deseja excluir este produto? Esta ação não pode ser desfeita.')) {
-            try {
-                const response = await fetch(`/api/products/${productId}?storeId=${storeId}`, {
-                    method: 'DELETE'
-                });
+            if (confirm('Tem certeza que deseja excluir este produto? Esta ação não pode ser desfeita.')) {
+                try {
+                    const response = await fetch(`/api/products/${productId}?storeId=${storeId}`, {
+                        method: 'DELETE'
+                    });
 
-                const resultText = await response.text();
+                    const resultText = await response.text();
 
-                if (response.ok) {
-                    document.getElementById(`product-card-${productId}`).remove();
-                    showMessage(resultText, 'success');
-                } else {
-                    throw new Error(resultText);
+                    if (response.ok) {
+                        // Remove from the global list and re-render
+                        allProducts = allProducts.filter(p => p.id != productId);
+                        applyFiltersAndSearch(); // Re-apply filters
+                        showMessage(resultText, 'success');
+                    } else {
+                        throw new Error(resultText);
+                    }
+                } catch (error) {
+                    console.error('Erro ao excluir produto:', error);
+                    showMessage(`Erro ao excluir: ${error.message}`, 'danger');
                 }
-            } catch (error) {
-                console.error('Erro ao excluir produto:', error);
-                showMessage(`Erro ao excluir: ${error.message}`, 'danger');
             }
         }
-    }
 
-    function showMessage(text, type) {
-        const messageContainer = document.getElementById('message-container');
-        const alert = `
-            <div class="alert alert-${type} alert-dismissible fade show" role="alert">
-                ${text}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        `;
-        messageContainer.innerHTML = alert;
-    }
+        function showMessage(text, type) {
+            const messageContainer = document.getElementById('message-container');
+            const alert = `
+                <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                    ${text}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            `;
+            messageContainer.innerHTML = alert;
+        }
+    });
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>

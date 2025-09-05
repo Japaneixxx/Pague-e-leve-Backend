@@ -1,7 +1,9 @@
 package com.japaneixxx.pagueleve.controller;
 
+import com.japaneixxx.pagueleve.model.Category;
 import com.japaneixxx.pagueleve.model.Product;
 import com.japaneixxx.pagueleve.model.Store;
+import com.japaneixxx.pagueleve.service.CategoryService;
 import com.japaneixxx.pagueleve.service.ImageUploadService;
 import com.japaneixxx.pagueleve.service.ProductService;
 import com.japaneixxx.util.PixGenerator;
@@ -16,9 +18,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
-
-
-
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
@@ -26,22 +25,19 @@ import java.util.Optional;
 @Controller
 public class ProductController {
 
-    // É uma boa prática usar um logger em vez de System.out.println
     private static final Logger log = LoggerFactory.getLogger(ProductController.class);
 
     private final ProductService productService;
     private final ImageUploadService imageUploadService;
+    private final CategoryService categoryService;
 
     @Autowired
-    public ProductController(ProductService productService, ImageUploadService imageUploadService) {
+    public ProductController(ProductService productService, ImageUploadService imageUploadService, CategoryService categoryService) {
         this.productService = productService;
         this.imageUploadService = imageUploadService;
+        this.categoryService = categoryService;
     }
 
-    /**
-     * Processa a criação de um novo produto.
-     * Agora aceita tanto um arquivo (imageFile) quanto uma URL de imagem (imageUrl).
-     */
     @PostMapping("/api/products")
     @ResponseBody
     public ResponseEntity<?> createProduct(
@@ -52,7 +48,8 @@ public class ProductController {
             @RequestParam(value = "featured", required = false, defaultValue = "false") boolean featured,
             @RequestParam(value = "imageFile", required = false) MultipartFile imageFile,
             @RequestParam(value = "imageUrl", required = false) String imageUrl,
-            @RequestParam(value = "codigoDeBarras", required = false) String codigoDeBarras,// NOVO PARÂMETRO
+            @RequestParam(value = "codigoDeBarras", required = false) String codigoDeBarras,
+            @RequestParam(value = "category", required = false) String categoryName,
             @RequestParam("storeId") Long storeId) {
 
         Optional<Store> storeOptional = productService.findStoreById(storeId);
@@ -63,18 +60,11 @@ public class ProductController {
         try {
             String finalImageUrl;
 
-            // LÓGICA DE PRIORIDADE PARA A IMAGEM
             if (imageFile != null && !imageFile.isEmpty()) {
-                // 1. Se um arquivo foi enviado, ele tem a maior prioridade.
-                log.info("Criando produto com imagem via UPLOAD de arquivo.");
                 finalImageUrl = imageUploadService.uploadImage(imageFile);
             } else if (imageUrl != null && !imageUrl.isBlank()) {
-                // 2. Se não houver arquivo, mas houver um link, use o link.
-                log.info("Criando produto com imagem via LINK.");
                 finalImageUrl = imageUrl;
             } else {
-                // 3. Se nenhum dos dois for fornecido, usa a imagem padrão.
-                log.info("Criando produto com imagem PADRÃO.");
                 finalImageUrl = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRHICWZcFeQ7UuaU7N30-E4Vt1GaTYIU1DIEA&s";
             }
 
@@ -84,9 +74,14 @@ public class ProductController {
             product.setPrice(price);
             product.setOldPrice(oldPrice);
             product.setHighlighted(featured);
-            product.setImageUrl(finalImageUrl); // Salva a URL decidida
+            product.setImageUrl(finalImageUrl);
             product.setCodigoDeBarras(codigoDeBarras);
             product.setStore(storeOptional.get());
+
+            if (categoryName != null && !categoryName.isBlank()) {
+                Category category = categoryService.findOrCreateCategory(categoryName, String.valueOf(storeId));
+                product.setCategory(category);
+            }
 
             productService.saveProduct(product);
 
@@ -101,9 +96,6 @@ public class ProductController {
         }
     }
 
-    /**
-     * Exibe o formulário para editar um produto existente.
-     */
     @GetMapping("/lojista/produto/{productId}/editar")
     public String showEditProductForm(@PathVariable Long productId, Model model) {
         Optional<Product> productOptional = productService.findProductById(productId);
@@ -117,10 +109,6 @@ public class ProductController {
         }
     }
 
-    /**
-     * Processa a submissão do formulário de edição de produto.
-     * Agora aceita tanto um arquivo (imageFile) quanto uma URL de imagem (imageUrl).
-     */
     @PostMapping("/api/products/{productId}")
     @ResponseBody
     public ResponseEntity<?> updateProduct(
@@ -132,10 +120,11 @@ public class ProductController {
             @RequestParam(value = "featured", required = false, defaultValue = "false") boolean featured,
             @RequestParam(value = "imageFile", required = false) MultipartFile imageFile,
             @RequestParam(value = "imageUrl", required = false) String imageUrl,
-            @RequestParam(value = "codigoDeBarras", required = false) String codigoDeBarras, // NOVO PARÂMETRO
+            @RequestParam(value = "codigoDeBarras", required = false) String codigoDeBarras,
+            @RequestParam(value = "category", required = false) String categoryName,
             @RequestParam("storeId") Long storeId) {
 
-        Optional<Product> existingProductOptional = productService.findProductByIdAndStoreId(productId, storeId);
+        Optional<Product> existingProductOptional = productService.findProductByIdAndStoreIdForLojista(productId, storeId);
         if (existingProductOptional.isEmpty()) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Acesso negado. Você não tem permissão para editar este produto.");
         }
@@ -143,26 +132,26 @@ public class ProductController {
         Product productToUpdate = existingProductOptional.get();
 
         try {
-            // LÓGICA DE PRIORIDADE PARA A IMAGEM
             if (imageFile != null && !imageFile.isEmpty()) {
-                // 1. Se um arquivo foi enviado, ele tem a maior prioridade.
-                log.info("Atualizando produto {} com imagem via UPLOAD de arquivo.", productId);
                 String newImageUrl = imageUploadService.uploadImage(imageFile);
                 productToUpdate.setImageUrl(newImageUrl);
             } else if (imageUrl != null && !imageUrl.isBlank()) {
-                // 2. Se não houver arquivo, mas houver um link, use o link.
-                log.info("Atualizando produto {} com imagem via LINK.", productId);
                 productToUpdate.setImageUrl(imageUrl);
             }
-            // 3. Se nenhum dos dois for fornecido, a imagem existente não é alterada.
 
-            // Atualiza os outros campos do produto
             productToUpdate.setName(name);
             productToUpdate.setDescription(description);
             productToUpdate.setPrice(price);
             productToUpdate.setOldPrice(oldPrice);
             productToUpdate.setHighlighted(featured);
             productToUpdate.setCodigoDeBarras(codigoDeBarras);
+
+            if (categoryName != null && !categoryName.isBlank()) {
+                Category category = categoryService.findOrCreateCategory(categoryName, String.valueOf(storeId));
+                productToUpdate.setCategory(category);
+            } else {
+                productToUpdate.setCategory(null);
+            }
 
             productService.saveProduct(productToUpdate);
 
@@ -177,23 +166,45 @@ public class ProductController {
         }
     }
 
-    /**
-     * API para buscar todos os produtos de uma loja específica.
-     */
+    @PatchMapping("/api/products/{id}/status")
+    @ResponseBody
+    public ResponseEntity<?> updateProductStatus(@PathVariable Long id, @RequestParam boolean active) {
+        try {
+            Optional<Product> updatedProduct = productService.updateProductStatus(id, active);
+            if (updatedProduct.isPresent()) {
+                return ResponseEntity.ok().body("Status do produto atualizado com sucesso.");
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        } catch (Exception e) {
+            log.error("Erro ao atualizar status do produto {}", id, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao atualizar status do produto.");
+        }
+    }
+
+    @GetMapping("/api/categories/{lojistaId}")
+    @ResponseBody
+    public ResponseEntity<List<Category>> getCategoriesByLojista(@PathVariable String lojistaId) {
+        return ResponseEntity.ok(categoryService.findCategoriesByLojista(lojistaId));
+    }
+
+    @GetMapping("/api/categories")
+    @ResponseBody
+    public ResponseEntity<List<String>> getAllDistinctCategories() {
+        return ResponseEntity.ok(categoryService.findAllDistinctCategoryNames());
+    }
+
     @GetMapping("/api/stores/{storeId}/products")
     @ResponseBody
     public ResponseEntity<?> getProductsForStore(@PathVariable Long storeId) {
-        List<Product> products = productService.findAllProductsByStoreId(storeId);
+        List<Product> products = productService.findAllProductsByStoreIdForLojista(storeId);
         return ResponseEntity.ok(products);
     }
 
-    /**
-     * API para excluir um produto.
-     */
     @DeleteMapping("/api/products/{productId}")
     @ResponseBody
     public ResponseEntity<?> deleteProduct(@PathVariable Long productId, @RequestParam Long storeId) {
-        Optional<Product> productOptional = productService.findProductByIdAndStoreId(productId, storeId);
+        Optional<Product> productOptional = productService.findProductByIdAndStoreIdForLojista(productId, storeId);
         if (productOptional.isEmpty()) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Acesso negado. Você não tem permissão para excluir este produto.");
         }
@@ -207,11 +218,6 @@ public class ProductController {
         }
     }
 
-    /**
-     * Prepara e exibe a página de checkout com os dados do PIX.
-     * Acessível via: GET /{storeId}/checkout?total=XX.XX
-     * VERSÃO ATUALIZADA USANDO NOSSO PRÓPRIO GERADOR DE PIX.
-     */
     @GetMapping("/{storeId}/checkout")
     public String showCheckoutPage(@PathVariable Long storeId,
                                    @RequestParam("total") BigDecimal total,
@@ -227,14 +233,12 @@ public class ProductController {
         Store store = storeOptional.get();
 
         try {
-            // --- LÓGICA ATUALIZADA ---
-            // Usando nossa própria classe para gerar o código
             String brCode = PixGenerator.generatePayload(
                     store.getPix(),
                     total,
                     store.getName(),
-                    "BELO HORIZONTE", // A cidade é obrigatória pelo padrão do BACEN
-                    "***" // txid estático para pagamentos sem ID de transação único
+                    "BELO HORIZONTE",
+                    "***"
             );
 
             model.addAttribute("store", store);
@@ -249,11 +253,6 @@ public class ProductController {
             return "errorTemplate";
         }
     }
-
-
-    // ===================================================================================
-    // MÉTODOS DE VISUALIZAÇÃO PARA CLIENTES (INTOCADOS)
-    // ===================================================================================
 
     @RequestMapping("/")
     public String redirectToDefaultStoreRoot() {
@@ -284,7 +283,7 @@ public class ProductController {
 
         if (storeOptional.isPresent()) {
             Store store = storeOptional.get();
-            List<Product> highlightedProducts = productService.findHighlightedProductsByStoreId(storeId);
+            List<Product> highlightedProducts = productService.findActiveHighlightedProductsByStoreId(storeId);
 
             model.addAttribute("store", store);
             model.addAttribute("highlightedProducts", highlightedProducts);
@@ -305,10 +304,10 @@ public class ProductController {
                                      Model model) {
         Optional<Product> productOptional;
         if (storeId != null) {
-            productOptional = productService.findProductByIdAndStoreId(productId, storeId);
+            productOptional = productService.findActiveProductByIdAndStoreId(productId, storeId);
             System.out.println("Buscando produto com ID: " + productId + " e StoreId: " + storeId);
         } else {
-            productOptional = productService.findProductById(productId);
+            productOptional = productService.findProductById(productId); // This might need review if products should always be tied to a store
             System.out.println("Atenção: storeId não foi fornecido, usando apenas o ID do produto.");
         }
 
@@ -324,7 +323,7 @@ public class ProductController {
 
     @GetMapping("/{storeId}/produtos")
     public String listProductsByStore(@PathVariable Long storeId, Model model) {
-        List<Product> products = productService.findAllProductsByStoreId(storeId);
+        List<Product> products = productService.findAllActiveProductsByStoreId(storeId);
         model.addAttribute("products", products);
         model.addAttribute("currentStoreId", storeId);
         System.out.println("Buscando produtos para a loja com ID: " + storeId + ". Encontrados: " + products.size());
@@ -339,7 +338,7 @@ public class ProductController {
     public List<Product> searchProducts(@RequestParam("name") String name,
                                         @RequestParam("storeId") Long storeId) {
         int limit = 3;
-        List<Product> foundProducts = productService.searchProductsByNameAndStoreIdWithLimit(name, storeId, limit);
+        List<Product> foundProducts = productService.searchActiveProductsByNameAndStoreIdWithLimit(name, storeId, limit);
         System.out.println("Busca por '" + name + "' na loja " + storeId + ": Encontrados " + foundProducts.size() + " produtos.");
         return foundProducts;
     }
@@ -348,7 +347,7 @@ public class ProductController {
     public String searchProductsInStore(@PathVariable Long storeId,
                                         @RequestParam("name") String name,
                                         Model model) {
-        List<Product> foundProducts = productService.searchProductsByNameAndStoreId(name, storeId);
+        List<Product> foundProducts = productService.searchActiveProductsByNameAndStoreId(name, storeId);
         model.addAttribute("products", foundProducts);
         model.addAttribute("currentStoreId", storeId);
         model.addAttribute("searchTerm", name);
@@ -371,30 +370,21 @@ public class ProductController {
         }
     }
 
-
-    /**
-     * API para buscar um produto pelo seu código de barras.
-     * Acessível via: GET /api/products/barcode/{barcode}
-     */
     @GetMapping("/api/products/barcode/{barcode}")
     @ResponseBody
     public ResponseEntity<?> findProductByBarcode(@PathVariable String barcode, @RequestParam Long storeId) {
         log.info("Buscando produto com código de barras '{}' na loja ID {}", barcode, storeId);
 
-        // Primeiro, buscamos o produto pelo código de barras
         Optional<Product> productOptional = productService.findByCodigoDeBarras(barcode);
 
         if (productOptional.isPresent()) {
             Product product = productOptional.get();
-            // Verificação de segurança: o produto encontrado pertence à loja correta?
-            if (product.getStore().getId().equals(storeId)) {
-                return ResponseEntity.ok(product); // Retorna o produto se encontrado e na loja certa
+            if (product.getStore().getId().equals(storeId) && product.isActive()) { // Check if active
+                return ResponseEntity.ok(product);
             } else {
-                // Produto existe, mas em outra loja. Para o usuário, é como se não existisse.
                 return ResponseEntity.notFound().build();
             }
         } else {
-            // Produto não encontrado no banco de dados
             return ResponseEntity.notFound().build();
         }
     }

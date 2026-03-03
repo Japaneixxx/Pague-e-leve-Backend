@@ -24,7 +24,7 @@
     }
 
     .cart-item-card {
-        border-left: 5px solid #029ad5; /* Estilo visual para os itens do carrinho */
+        border-left: 5px solid #029ad5;
     }
 
     .quantity-control button {
@@ -45,7 +45,7 @@
 <body class="section bg">
 
 <a type="button" href="javascript:void(0);" id="backButton" class="btn">
-    <h1 class=""><i class="bi bi-arrow-left-circle-fill"></i></h1>
+    <h1><i class="bi bi-arrow-left-circle-fill"></i></h1>
 </a>
 <div class="text-center">
     <img src="/images/LogoP.png" alt="Logo">
@@ -69,6 +69,8 @@
     </div>
 </div>
 
+<!-- Ilha de navegação inferior -->
+<div th:replace="~{_cartIsland :: island(storeId=${currentStoreId}, activePage='carrinho')}"></div>
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
@@ -81,38 +83,34 @@
         const currentStoreId = document.getElementById('storeIdData').value;
         const cartKey = `cartItems_${currentStoreId}`;
 
-        // --- Funções de Manipulação do Carrinho ---
-
         const getCart = () => JSON.parse(sessionStorage.getItem(cartKey)) || [];
         const saveCart = (cart) => sessionStorage.setItem(cartKey, JSON.stringify(cart));
 
-        const updateItemQuantity = (itemId, newQuantity) => {
+        window.updateItemQuantity = (itemId, newQuantity) => {
             let cart = getCart();
             const itemIndex = cart.findIndex(item => item.id == itemId);
-
             if (itemIndex !== -1) {
                 if (newQuantity > 0) {
                     cart[itemIndex].quantity = newQuantity;
                 } else {
-                    // Remove o item se a quantidade for 0 ou menor
                     cart.splice(itemIndex, 1);
                 }
                 saveCart(cart);
                 renderCart();
+                if (window.updateIslandBadge) window.updateIslandBadge();
             }
         };
 
-        const removeItem = (itemId) => {
-             if (confirm('Tem certeza que deseja remover este item do carrinho?')) {
+        window.removeItem = (itemId) => {
+            if (confirm('Tem certeza que deseja remover este item do carrinho?')) {
                 let cart = getCart();
                 const updatedCart = cart.filter(item => item.id != itemId);
                 saveCart(updatedCart);
                 renderCart();
+                if (window.updateIslandBadge) window.updateIslandBadge();
             }
         };
 
-
-        // --- Função para Renderizar o Carrinho ---
         const renderCart = () => {
             let cart = getCart();
             let totalPrice = 0;
@@ -131,63 +129,108 @@
                                         <h5 class="card-title mb-1">${item.name}</h5>
                                         <small class="text-muted">ID: ${item.id}</small>
                                     </div>
-                                    <button class="btn btn-sm btn-outline-danger border-0" onclick="window.removeItem(${item.id})">
+                                    <button class="btn btn-sm btn-outline-danger border-0" onclick="window.removeItem('${item.id}')">
                                         <i class="bi bi-trash-fill"></i>
                                     </button>
                                 </div>
-                                <hr class="my-2">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div class="d-flex align-items-center quantity-control">
-                                        <button class="btn btn-secondary btn-sm" onclick="window.updateItemQuantity(${item.id}, ${item.quantity - 1})">-</button>
-                                        <span class="quantity-display mx-2 fw-bold">${item.quantity}</span>
-                                        <button class="btn btn-secondary btn-sm" onclick="window.updateItemQuantity(${item.id}, ${item.quantity + 1})">+</button>
+                                <div class="d-flex justify-content-between align-items-center mt-2">
+                                    <div class="quantity-control d-flex align-items-center gap-2">
+                                        <button class="btn btn-sm btn-outline-secondary" onclick="window.updateItemQuantity('${item.id}', ${item.quantity - 1})">
+                                            <i class="bi bi-dash"></i>
+                                        </button>
+                                        <span class="quantity-display fw-bold">${item.quantity}</span>
+                                        <button class="btn btn-sm btn-outline-secondary" onclick="window.updateItemQuantity('${item.id}', ${item.quantity + 1})">
+                                            <i class="bi bi-plus"></i>
+                                        </button>
                                     </div>
                                     <p class="card-text fw-bold mb-0">${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(itemSubtotal)}</p>
                                 </div>
                             </div>
-                        </div>
-                    `;
+                        </div>`;
                     cartItemsContainer.insertAdjacentHTML('beforeend', cardHtml);
                 });
+                finishButton.classList.remove('disabled');
             } else {
                 cartItemsContainer.innerHTML = `
                     <div class="text-center my-5">
                         <img src="/images/EmptyCart.png" alt="Carrinho Vazio" class="img-fluid" style="max-width: 150px;">
                         <p class="mt-3 fs-5 text-muted">Seu carrinho está vazio.</p>
-                    </div>
-                `;
+                    </div>`;
                 finishButton.classList.add('disabled');
             }
+
             const formattedTotalPrice = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalPrice);
             cartTotalElement.textContent = `Total: ${formattedTotalPrice}`;
-
-            if (totalPrice > 0) {
-                finishButton.href = `/${currentStoreId}/checkout?total=${totalPrice.toFixed(2)}`;
-                finishButton.classList.remove('disabled');
-            } else {
-                 finishButton.classList.add('disabled');
-            }
         };
 
-        // Expor funções globalmente para serem acessíveis pelo onclick
-        window.updateItemQuantity = updateItemQuantity;
-        window.removeItem = removeItem;
-
-        // Chamada inicial para renderizar o carrinho
         renderCart();
 
-        // Lógica para o botão Limpar Carrinho
+        // --- Checkout via API ---
+        finishButton.addEventListener('click', async (event) => {
+            event.preventDefault();
+            if (finishButton.classList.contains('disabled')) return;
+
+            const cartItems = getCart().map(item => ({ id: item.id, quantity: item.quantity }));
+
+            try {
+                const response = await fetch(`/${currentStoreId}/api/checkout`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(cartItems)
+                });
+
+                if (response.ok) {
+                    const pixData = await response.json();
+                    displayPixModal(pixData.brCode, pixData.totalAmount);
+                } else {
+                    const errorText = await response.text();
+                    alert(`Erro ao finalizar a compra: ${errorText}`);
+                }
+            } catch (error) {
+                console.error('Erro de rede:', error);
+                alert('Não foi possível conectar ao servidor. Tente novamente.');
+            }
+        });
+
+        function displayPixModal(brCode, totalAmount) {
+            const pixModal = new bootstrap.Modal(document.getElementById('pixModal'));
+            const qrContainer = document.getElementById('qrcode-container');
+            const amountElement = document.getElementById('pix-amount');
+            const brCodeInput = document.getElementById('pix-brcode');
+            const copyBtn = document.getElementById('copy-pix-btn');
+            const copySuccessMsg = document.getElementById('copy-success-message');
+
+            amountElement.textContent = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalAmount);
+            brCodeInput.value = brCode;
+            qrContainer.innerHTML = '';
+
+            const typeNumber = 0;
+            const errorCorrectionLevel = 'L';
+            const qr = qrcode(typeNumber, errorCorrectionLevel);
+            qr.addData(brCode);
+            qr.make();
+            qrContainer.innerHTML = qr.createImgTag(4, 8);
+
+            copyBtn.onclick = () => {
+                brCodeInput.select();
+                document.execCommand('copy');
+                copySuccessMsg.classList.remove('d-none');
+                setTimeout(() => copySuccessMsg.classList.add('d-none'), 2000);
+            };
+
+            pixModal.show();
+        }
+
         if (clearCartButton) {
             clearCartButton.addEventListener('click', () => {
                 if (confirm('Tem certeza que deseja remover todos os itens do carrinho?')) {
                     sessionStorage.removeItem(cartKey);
                     renderCart();
-                    alert('Carrinho limpo com sucesso!');
+                    if (window.updateIslandBadge) window.updateIslandBadge();
                 }
             });
         }
 
-        // Lógica para o botão "Voltar"
         if (backButton) {
             backButton.addEventListener('click', (event) => {
                 event.preventDefault();
@@ -197,9 +240,35 @@
     });
 </script>
 
+<!-- Modal PIX -->
+<div class="modal fade" id="pixModal" tabindex="-1" aria-labelledby="pixModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="pixModalLabel">Pague com PIX</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <p>Escaneie o QR Code com o app do seu banco:</p>
+                <div id="qrcode-container" class="mb-3"></div>
+                <p class="fw-bold">Valor: <span id="pix-amount"></span></p>
+                <hr>
+                <p>Ou use o PIX Copia e Cola:</p>
+                <div class="input-group">
+                    <input type="text" id="pix-brcode" class="form-control" readonly>
+                    <button class="btn btn-outline-secondary" id="copy-pix-btn">
+                        <i class="bi bi-clipboard"></i> Copiar
+                    </button>
+                </div>
+                <div id="copy-success-message" class="text-success mt-2 d-none">Código copiado!</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator/qrcode.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-j1CDi7MgGQ12Z7Qab0qlWQ/Qqz24Gc6BM0thvEMVjHnfYGF0rmFCozFSxQBxwHKO"
         crossorigin="anonymous"></script>
 </body>
-
 </html>

@@ -8,6 +8,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // Configuração do scanner
     const html5QrcodeScanner = new Html5Qrcode("barcode-scanner-container");
 
+    // Aplica espelhamento horizontal no elemento de vídeo gerado pela biblioteca
+    function applyMirror() {
+        const video = document.querySelector('#barcode-scanner-container video');
+        if (video) {
+            video.style.transform = 'scaleX(-1)';
+        } else {
+            // A biblioteca pode demorar um frame para renderizar o vídeo
+            setTimeout(applyMirror, 100);
+        }
+    }
+
     const onScanSuccess = async (decodedText, decodedResult) => {
         // Para o scanner assim que um código é lido com sucesso
         html5QrcodeScanner.stop().then(() => {
@@ -55,7 +66,9 @@ document.addEventListener('DOMContentLoaded', () => {
             },
             onScanSuccess,
             onScanFailure
-        ).catch(err => {
+        ).then(() => {
+            applyMirror(); // Espelha a câmera após iniciar
+        }).catch(err => {
             console.error("Não foi possível iniciar o scanner", err);
             scannerUi.style.display = 'none';
             messageContainer.innerHTML = `<div class="alert alert-danger">Não foi possível acessar a câmera. Verifique as permissões.</div>`;

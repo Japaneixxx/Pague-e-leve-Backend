@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!--
+  FRAGMENTO: Ilha de navegação inferior do cliente
+  Uso: <div th:replace="~{_cartIsland :: island(storeId=${currentStoreId}, activePage='home')}"></div>
+  activePage: 'home' | 'produtos' | 'carrinho' | (outro = nenhum destaque)
+  Requer: Bootstrap Icons e um <input type="hidden" id="storeIdData"> na página.
+-->
+
+<div th:fragment="island(storeId, activePage)">
+
+    <!-- Espaçamento para o conteúdo não ficar atrás da ilha -->
+    <div style="height: 90px;"></div>
+
+    <style>
+        .island-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            text-decoration: none;
+            color: #6c757d;
+            font-weight: 500;
+            font-size: 0.88rem;
+            padding: 0.35rem 0.7rem;
+            border-radius: 999px;
+            transition: background 0.15s, color 0.15s;
+            white-space: nowrap;
+        }
+        .island-btn:hover {
+            background: rgba(0,0,0,0.06);
+            color: #1a1a1a;
+        }
+        .island-btn--active {
+            color: #029ad5;
+            font-weight: 700;
+            background: rgba(2, 154, 213, 0.12);
+        }
+        .island-btn--active:hover {
+            background: rgba(2, 154, 213, 0.18);
+            color: #029ad5;
+        }
+        .island-sep {
+            width: 1px;
+            height: 26px;
+            background: rgba(0,0,0,0.1);
+            border-radius: 1px;
+            flex-shrink: 0;
+        }
+    </style>
+
+    <!-- A Ilha -->
+    <div id="cart-island" style="
+        position: fixed;
+        bottom: 1.25rem;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(255,255,255,0.92);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-radius: 999px;
+        padding: 0.5rem 1rem;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        z-index: 1050;
+        border: 1px solid rgba(255,255,255,0.6);
+        justify-content: center;
+    ">
+
+        <!-- Botão Home -->
+        <a id="island-home-btn"
+           th:href="@{/{sid}/home(sid=${storeId})}"
+           th:class="${activePage == 'home'} ? 'island-btn island-btn--active' : 'island-btn'">
+            <i th:class="${activePage == 'home'} ? 'bi bi-house-fill' : 'bi bi-house'"
+               style="font-size: 1.3rem;"></i>
+            <span>Início</span>
+        </a>
+
+        <div class="island-sep"></div>
+
+        <!-- Botão Produtos -->
+        <a id="island-products-btn"
+           th:href="@{/{sid}/produtos(sid=${storeId})}"
+           th:class="${activePage == 'produtos'} ? 'island-btn island-btn--active' : 'island-btn'">
+            <i th:class="${activePage == 'produtos'} ? 'bi bi-grid-fill' : 'bi bi-grid'"
+               style="font-size: 1.3rem;"></i>
+            <span>Produtos</span>
+        </a>
+
+        <div class="island-sep"></div>
+
+        <!-- Botão Carrinho -->
+        <a id="island-cart-btn"
+           th:href="@{/{sid}/cart(sid=${storeId})}"
+           th:class="${activePage == 'carrinho'} ? 'island-btn island-btn--active' : 'island-btn'"
+           style="position: relative;">
+            <i th:class="${activePage == 'carrinho'} ? 'bi bi-cart3-fill' : 'bi bi-cart3'"
+               style="font-size: 1.3rem;"></i>
+            <span>Carrinho</span>
+            <span id="island-cart-badge" style="
+                display: none;
+                position: absolute;
+                top: -4px;
+                right: -4px;
+                background: #dc3545;
+                color: white;
+                border-radius: 999px;
+                font-size: 0.65rem;
+                font-weight: 700;
+                min-width: 18px;
+                height: 18px;
+                line-height: 18px;
+                text-align: center;
+                padding: 0 4px;
+                border: 2px solid white;
+            ">0</span>
+        </a>
+
+    </div>
+
+    <script th:inline="javascript">
+        (function() {
+            const storeId = /*[[${storeId}]]*/ null;
+
+            function updateBadge() {
+                const key = `cartItems_${storeId}`;
+                const badge = document.getElementById('island-cart-badge');
+                if (!badge || !storeId) return;
+                try {
+                    const cart = JSON.parse(sessionStorage.getItem(key)) || [];
+                    const totalQty = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
+                    if (totalQty > 0) {
+                        badge.textContent = totalQty > 99 ? '99+' : totalQty;
+                        badge.style.display = 'block';
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                } catch(e) {
+                    badge.style.display = 'none';
+                }
+            }
+
+            document.addEventListener('DOMContentLoaded', updateBadge);
+            window.addEventListener('storage', updateBadge);
+            window.updateIslandBadge = updateBadge;
+        })();
+    </script>
+</div>
+
+</body>
+</html>

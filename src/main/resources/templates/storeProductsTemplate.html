@@ -22,33 +22,72 @@
     .space15 {
         height: 10vh;
     }
+
     .card-img-top-fix {
         width: 100%;
-        height: 180px; /* Altura fixa para as imagens dos produtos */
-        object-fit: cover; /* Garante que a imagem preenche o espaço sem distorcer */
+        height: 180px;
+        object-fit: cover;
+    }
+
+    .product-card {
+        cursor: pointer;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .product-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+    }
+
+    .btn-add-cart {
+        position: relative;
+        z-index: 2; /* garante que o botão fique acima do clique do card */
+    }
+
+    /* Toast de confirmação */
+    .toast-container {
+        position: fixed;
+        bottom: 1.5rem;
+        right: 1.5rem;
+        z-index: 9999;
     }
 </style>
 
 <body class="section bg">
 
-<a type="button" th:href="@{/{storeId}/home(storeId=${currentStoreId})}" id="backButton" class="btn" ><h1 class=""><i class="bi bi-arrow-left-circle-fill"></i></h1></a> <div class="space5"></div>
+<a type="button" th:href="@{/{storeId}/home(storeId=${currentStoreId})}" id="backButton" class="btn">
+    <h1><i class="bi bi-arrow-left-circle-fill"></i></h1>
+</a>
+
+<div class="space5"></div>
 
 <div class="text-center">
     <h1 class="fw-bold" th:text="${searchTerm}? 'Resultados da Busca' : 'Produtos'">Produtos</h1>
-<!--    <h3 th:if="${currentStoreId}" th:text="'Loja ID: ' + ${currentStoreId}"></h3>-->
     <h5 th:if="${searchTerm}" th:text="'Termo: &quot;' + ${searchTerm} + '&quot;'"></h5>
 </div>
 
 <div class="space15"></div>
 
+<!-- Toast de confirmação de adição ao carrinho -->
+<div class="toast-container">
+    <div id="cartToast" class="toast align-items-center text-bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body">
+                <i class="bi bi-cart-check-fill me-2"></i>
+                <span id="cartToastMessage">Produto adicionado ao carrinho!</span>
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+
 <div class="container">
-    <!-- Category Filter Dropdown -->
+    <!-- Filtro por categoria -->
     <div class="d-flex justify-content-center mb-4">
         <div class="w-50">
             <label for="category-select" class="form-label text-white">Filtrar por Categoria</label>
             <select class="form-select" id="category-select">
                 <option value="all" selected>Todas as Categorias</option>
-                <!-- Category options will be inserted here by JavaScript -->
             </select>
         </div>
     </div>
@@ -60,34 +99,56 @@
             </div>
         </div>
 
-        <div class="col product-container" th:each="product : ${products}" th:data-category="${product.category != null ? product.category.name : 'Sem Categoria'}">
-            <a th:href="@{/produto/{productId}(productId=${product.id}, storeId=${product.store.id})}" class="text-reset text-decoration-none">
-            <div class="card h-100">
-                <img th:src="${product.imageUrl ?: '/images/placeholder.png'}" class="card-img-top card-img-top-fix" th:alt="${product.name}">
+        <div class="col product-container my-2"
+             th:each="product : ${products}"
+             th:data-category="${product.category != null ? product.category.name : 'Sem Categoria'}">
+
+            <!-- Card clicável para detalhes (sem <a> envolvendo o botão) -->
+            <div class="card h-100 product-card"
+                 th:data-product-url="@{/produto/{productId}(productId=${product.id}, storeId=${product.store.id})}">
+
+                <img th:src="${product.imageUrl ?: '/images/placeholder.png'}"
+                     class="card-img-top card-img-top-fix"
+                     th:alt="${product.name}">
+
                 <div class="card-body d-flex flex-column">
                     <h5 class="card-title" th:text="${product.name}">Nome Produto</h5>
                     <p class="card-text text-body-secondary" th:text="${product.description}">informações</p>
-                    <h6 class="card-subtitle mb-2 text-body-secondary" style="text-decoration: line-through;" th:if="${product.oldPrice != null && product.oldPrice > 0}" th:text="${'R$ ' + #numbers.formatDecimal(product.oldPrice, 1, 2,'COMMA')}"></h6>
-                    <h6 class="card-subtitle mb-2 text-body-secondary text-success mt-auto" th:text="${'R$ ' + #numbers.formatDecimal(product.price, 1, 2,'COMMA')}">R$ 0,00</h6>
-                    <p class="card-text text-muted" th:if="${product.category != null}" th:text="${'Categoria: ' + product.category.name}"></p>
+                    <h6 class="card-subtitle mb-2"
+                        style="text-decoration: line-through; color: #dc3545;"
+                        th:if="${product.oldPrice != null && product.oldPrice > 0}"
+                        th:text="${'R$ ' + #numbers.formatDecimal(product.oldPrice, 1, 2,'COMMA')}"></h6>
+                    <h5 class="fw-bold text-success mt-auto mb-1"
+                        th:text="${'R$ ' + #numbers.formatDecimal(product.price, 1, 2,'COMMA')}">R$ 0,00</h5>
+                    <p class="card-text text-muted"
+                       th:if="${product.category != null}"
+                       th:text="${'Categoria: ' + product.category.name}"></p>
 
-                    <a th:href="@{/produto/{productId}(productId=${product.id}, storeId=${product.store.id})}" class="btn btn-primary mt-3">Ver detalhes</a>
+                    <!-- Botão Adicionar ao Carrinho -->
+                    <button class="btn btn-success mt-3 btn-add-cart"
+                            th:data-product-id="${product.id}"
+                            th:data-product-name="${product.name}"
+                            th:data-product-price="${product.price}"
+                            th:data-store-id="${product.store.id}">
+                        <i class="bi bi-cart-plus me-1"></i> Adicionar ao Carrinho
+                    </button>
                 </div>
             </div>
-            </a>
         </div>
     </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-j1CDi7MgGQ12Z7Qab0qlWQ/Qqz24Gc6BM0thvEMVjHnfYGF0rmFCozFSjQBxwHKO"
+        integrity="sha384-j1CDi7MgGQ12Z7Qab0qlWQ/Qqz24Gc6BM0thvEMVjHnfYGF0rmFCozFSxQBxwHKO"
         crossorigin="anonymous"></script>
+
 <script>
     document.addEventListener('DOMContentLoaded', () => {
+
+        // --- Filtro por categoria ---
         const categorySelect = document.getElementById('category-select');
         const productContainers = document.querySelectorAll('.product-container');
 
-        // Fetch categories and populate the dropdown
         fetch('/api/categories')
             .then(response => response.json())
             .then(categories => {
@@ -101,23 +162,70 @@
             })
             .catch(error => console.error('Erro ao carregar categorias:', error));
 
-        // Add event listener for the dropdown
         categorySelect.addEventListener('change', () => {
             const selectedCategory = categorySelect.value;
-
-            // Filter products based on the selected category
             productContainers.forEach(container => {
                 const productCategory = container.dataset.category;
+                container.style.display = (selectedCategory === 'all' || productCategory === selectedCategory) ? '' : 'none';
+            });
+        });
 
-                if (selectedCategory === 'all' || productCategory === selectedCategory) {
-                    container.style.display = ''; // Show product
+        // --- Toast de confirmação ---
+        const toastEl = document.getElementById('cartToast');
+        const toastMessage = document.getElementById('cartToastMessage');
+        const toast = new bootstrap.Toast(toastEl, { delay: 2500 });
+
+        function showToast(productName) {
+            toastMessage.textContent = `"${productName}" adicionado ao carrinho!`;
+            toast.show();
+        }
+
+        // --- Clique no CARD → vai para detalhes ---
+        document.querySelectorAll('.product-card').forEach(card => {
+            card.addEventListener('click', (e) => {
+                // Se o clique veio do botão, ignora (o botão tem seu próprio listener)
+                if (e.target.closest('.btn-add-cart')) return;
+                const url = card.dataset.productUrl;
+                if (url) window.location.href = url;
+            });
+        });
+
+        // --- Clique no BOTÃO → adiciona ao carrinho ---
+        document.querySelectorAll('.btn-add-cart').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation(); // Impede de disparar o clique do card
+
+                const productId   = btn.dataset.productId;
+                const productName = btn.dataset.productName;
+                const productPrice = parseFloat(btn.dataset.productPrice);
+                const storeId     = btn.dataset.storeId;
+
+                const cartKey = `cartItems_${storeId}`;
+                let cart = sessionStorage.getItem(cartKey);
+                cart = cart ? JSON.parse(cart) : [];
+
+                const existingIndex = cart.findIndex(item => item.id === productId);
+                if (existingIndex > -1) {
+                    cart[existingIndex].quantity += 1;
                 } else {
-                    container.style.display = 'none'; // Hide product
+                    cart.push({
+                        id: productId,
+                        name: productName,
+                        price: productPrice,
+                        quantity: 1,
+                        storeId: storeId
+                    });
                 }
+
+                sessionStorage.setItem(cartKey, JSON.stringify(cart));
+                showToast(productName);
+                if (window.updateIslandBadge) window.updateIslandBadge();
             });
         });
     });
 </script>
-</body>
+<!-- Ilha de navegação inferior -->
+<div th:replace="~{_cartIsland :: island(storeId=${currentStoreId}, activePage='produtos')}"></div>
 
+</body>
 </html>

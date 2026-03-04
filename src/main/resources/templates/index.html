@@ -1,43 +1,74 @@
 <!DOCTYPE html>
-<html lang="pt-br" xmlns:th="http://www.thymeleaf.org"> <head>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pague e leve - <span th:if="${store}" th:text="${store.name}">Início</span></title> <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="/reset.css"> <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet"
-                                                    integrity="sha384-4Q6Gf2aSP4eDXB8Miphtr37CMZZQ5oXLH2yaXMJ2w8e2ZtHTl7GptT4jmndRuHDT" crossorigin="anonymous">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#029ad5">
+    <title th:text="${store != null} ? 'Pague e Leve - ' + ${store.name} : 'Pague e Leve'">Pague e Leve</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/reset.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-4Q6Gf2aSP4eDXB8Miphtr37CMZZQ5oXLH2yaXMJ2w8e2ZtHTl7GptT4jmndRuHDT" crossorigin="anonymous">
 </head>
-
-
 <style>
-    .bg {
+    * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+
+    body {
         background-color: #029ad5;
+        min-height: 100dvh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem 1.5rem;
+        overflow: hidden;
     }
 
-    .space5 {
-        height: 5vh;
+    .logo {
+        max-width: min(220px, 60vw);
+        margin-bottom: 2.5rem;
     }
 
-    .space15 {
-        height: 10vh;
+    .btn-start {
+        width: 100%;
+        max-width: 320px;
+        height: 56px;
+        font-size: 1.1rem;
+        font-weight: 700;
+        border-radius: 16px;
+        letter-spacing: 0.02em;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+        transition: transform 0.1s, box-shadow 0.1s;
     }
+    .btn-start:active {
+        transform: scale(0.97);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+    }
+    @keyframes logoEnter {
+        from { opacity: 0; transform: scale(0.88) translateY(-10px); }
+        to   { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    @keyframes btnEnter {
+        from { opacity: 0; transform: translateY(18px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+    .anim-logo { animation: logoEnter 0.5s cubic-bezier(0.22,1,0.36,1) both; }
+    .anim-btn  { animation: btnEnter  0.45s cubic-bezier(0.22,1,0.36,1) 0.18s both; }
 </style>
+<body>
 
+<img th:src="@{/images/Logo.png}" class="logo anim-logo" alt="Logo da Loja">
 
-<body class="section bg">
-<!--<div class="position-absolute top-0 end-0 p-1">-->
-<!--    <a href="/lojistaLogin.html" role="button" class="btn btn-dark rounded-pill">Lojista</a>-->
-<!--</div>-->
-
-<div class="position-absolute top-50 start-50 translate-middle">
-    <img th:src="@{/images/Logo.png}" alt="Logo da Loja"> <div class="space5"></div>
-    <div class="d-grid gap-2">
-        <a class="btn btn-dark rounded-pill" th:href="@{/{storeId}/home(storeId=${currentStoreId})}" role="button">Toque aqui pra iniciar</a>
-    </div>
-</div>
+<a class="btn btn-dark btn-start anim-btn" th:href="@{/{storeId}/home(storeId=${currentStoreId})}" role="button">
+    Toque aqui para iniciar
+</a>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-j1CDi7MgGQ12Z7Qab0qlWQ/Qqz24Gc6BM0thvEMVjHnfYGF0rmFCozFSxQBxwHKO"
         crossorigin="anonymous"></script>
 </body>
-
 </html>

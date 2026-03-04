@@ -1,75 +1,64 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const startScanBtn = document.getElementById('start-scan-btn');
-    const stopScanBtn = document.getElementById('stop-scan-btn');
-    const scannerUi = document.getElementById('scanner-ui');
+    const startScanBtn     = document.getElementById('start-scan-btn');
+    const stopScanBtn      = document.getElementById('stop-scan-btn');
+    const mirrorBtn        = document.getElementById('mirror-scan-btn');
+    const scannerUi        = document.getElementById('scanner-ui');
     const messageContainer = document.getElementById('scan-result-message');
-    const currentStoreId = document.getElementById('storeIdData').value;
+    const currentStoreId   = document.getElementById('storeIdData').value;
 
-    // Configuração do scanner
     const html5QrcodeScanner = new Html5Qrcode("barcode-scanner-container");
+    let mirrored = false;
 
-    // Aplica espelhamento horizontal no elemento de vídeo gerado pela biblioteca
-    function applyMirror() {
+    function applyMirrorState() {
         const video = document.querySelector('#barcode-scanner-container video');
         if (video) {
-            video.style.transform = 'scaleX(-1)';
+            video.style.transform = mirrored ? 'scaleX(-1)' : 'scaleX(1)';
         } else {
-            // A biblioteca pode demorar um frame para renderizar o vídeo
-            setTimeout(applyMirror, 100);
+            setTimeout(applyMirrorState, 100);
         }
     }
 
-    const onScanSuccess = async (decodedText, decodedResult) => {
-        // Para o scanner assim que um código é lido com sucesso
+    function updateMirrorBtn() {
+        if (!mirrorBtn) return;
+        mirrorBtn.classList.toggle('active', mirrored);
+        mirrorBtn.title = mirrored ? 'Desespelhar câmera' : 'Espelhar câmera';
+    }
+
+    if (mirrorBtn) {
+        mirrorBtn.addEventListener('click', () => {
+            mirrored = !mirrored;
+            applyMirrorState();
+            updateMirrorBtn();
+        });
+    }
+
+    const onScanSuccess = async (decodedText) => {
         html5QrcodeScanner.stop().then(() => {
             scannerUi.style.display = 'none';
-            console.log(`Código lido: ${decodedText}`);
+            mirrored = false;
+            updateMirrorBtn();
             messageContainer.innerHTML = `<div class="alert alert-info">Código ${decodedText} lido. Buscando produto...</div>`;
-
-            // Chama nossa API para buscar o produto
             fetch(`/api/products/barcode/${decodedText}?storeId=${currentStoreId}`)
-                .then(response => {
-                    if (response.ok) {
-                        return response.json();
-                    }
-                    if (response.status === 404) {
-                        throw new Error('Produto não encontrado.');
-                    }
-                    throw new Error('Erro ao buscar o produto.');
-                })
+                .then(r => { if (r.ok) return r.json(); throw new Error(r.status === 404 ? 'Produto não encontrado.' : 'Erro ao buscar o produto.'); })
                 .then(product => {
-                    // Se encontrou, redireciona para a página do produto
                     messageContainer.innerHTML = `<div class="alert alert-success">Produto encontrado! Redirecionando...</div>`;
                     window.location.href = `/produto/${product.id}?storeId=${product.store.id}`;
                 })
-                .catch(error => {
-                    console.error('Erro:', error);
-                    messageContainer.innerHTML = `<div class="alert alert-danger">${error.message}</div>`;
-                });
+                .catch(err => { messageContainer.innerHTML = `<div class="alert alert-danger">${err.message}</div>`; });
         });
-    };
-
-    const onScanFailure = (error) => {
-        // A biblioteca chama isso constantemente, então não mostramos erro na tela, apenas no console.
-        // console.warn(`Falha na leitura do código: ${error}`);
     };
 
     startScanBtn.addEventListener('click', () => {
         scannerUi.style.display = 'block';
-        messageContainer.innerHTML = ''; // Limpa mensagens antigas
-        // Inicia a câmera e o scanner
+        messageContainer.innerHTML = '';
+        mirrored = false;
+        updateMirrorBtn();
         html5QrcodeScanner.start(
-            { facingMode: "environment" }, // Usa a câmera traseira
-            {
-                fps: 10, // Frames por segundo
-                qrbox: { width: 250, height: 150 } // Tamanho da caixa de leitura
-            },
+            { facingMode: "environment" },
+            { fps: 10, qrbox: { width: 250, height: 150 } },
             onScanSuccess,
-            onScanFailure
-        ).then(() => {
-            applyMirror(); // Espelha a câmera após iniciar
-        }).catch(err => {
-            console.error("Não foi possível iniciar o scanner", err);
+            () => {}
+        ).catch(err => {
             scannerUi.style.display = 'none';
             messageContainer.innerHTML = `<div class="alert alert-danger">Não foi possível acessar a câmera. Verifique as permissões.</div>`;
         });
@@ -79,10 +68,8 @@ document.addEventListener('DOMContentLoaded', () => {
         html5QrcodeScanner.stop().then(() => {
             scannerUi.style.display = 'none';
             messageContainer.innerHTML = '';
-            console.log("Scanner parado pelo usuário.");
-        }).catch(err => {
-            console.error("Falha ao parar o scanner.", err);
-            scannerUi.style.display = 'none';
-        });
+            mirrored = false;
+            updateMirrorBtn();
+        }).catch(() => { scannerUi.style.display = 'none'; });
     });
 });

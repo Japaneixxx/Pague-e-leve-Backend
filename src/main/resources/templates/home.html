@@ -3,7 +3,8 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#029ad5">
     <title>Pague e leve - <span th:text="${store.name}">Nome da Loja</span></title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet"
@@ -11,50 +12,170 @@
 </head>
 
 <style>
-    .bg {
+    * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+
+    body {
+        display: flex;
+        flex-direction: column;
         background-color: #029ad5;
+        min-height: 100dvh;
+
+        overflow-x: hidden;
     }
 
-    .space5 {
-        height: 5vh;
+    .page-header {
+        padding: 1.5rem 1rem 0.75rem;
+        text-align: center;
+    }
+    .page-header h1 {
+        font-size: clamp(1.4rem, 5vw, 2rem);
+        font-weight: 700;
+        color: white;
+        line-height: 1.3;
+        margin: 0;
     }
 
-    .space15 {
-        height: 10vh;
+    .search-bar .form-control { font-size: 1rem; height: 48px; }
+    .search-bar .btn { min-width: 48px; height: 48px; font-size: 1.1rem; }
+
+    #stop-scan-btn { min-height: 44px; }
+
+    .products-section {
+        min-height: calc(100dvh - 160px);
+        padding-bottom: 110px;
+        background: white;
+        border-radius: 20px 20px 0 0;
+        padding: 1rem;
+        flex: 1;
     }
 
-    .card-img-top-fix {
-        width: 100%;
-        height: 120px;
-        object-fit: cover;
+    .section-title {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #444;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid #f0f0f0;
+        margin-bottom: 0.75rem;
     }
+
+    .products-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+    }
+    @media (min-width: 480px) { .products-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (min-width: 768px) { .products-grid { grid-template-columns: repeat(4, 1fr); } }
 
     .product-card {
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid #eee;
         cursor: pointer;
-        transition: transform 0.15s ease, box-shadow 0.15s ease;
+        transition: transform 0.15s, box-shadow 0.15s;
+        display: flex;
+        flex-direction: column;
+        background: white;
+        -webkit-user-select: none;
+        user-select: none;
     }
+    .product-card:active { transform: scale(0.97); }
+    .product-card img { width: 100%; height: 110px; object-fit: cover; }
 
-    .product-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    .product-card-body {
+        padding: 0.5rem;
+        display: flex;
+        flex-direction: column;
+        flex: 1;
     }
-
+    .product-card-title {
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: #222;
+        margin: 0 0 0.2rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    .product-card-desc {
+        font-size: 0.72rem;
+        color: #888;
+        margin: 0 0 0.25rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    .product-card-old-price {
+        font-size: 0.72rem;
+        color: #dc3545;
+        text-decoration: line-through;
+        margin: 0;
+    }
+    .product-card-price {
+        font-size: 0.92rem;
+        font-weight: 700;
+        color: #198754;
+        margin: 0 0 0.5rem;
+    }
     .btn-add-cart {
         position: relative;
         z-index: 2;
+        font-size: 0.78rem;
+        padding: 0.4rem 0.5rem;
+        border-radius: 8px;
+        min-height: 36px;
+        margin-top: auto;
     }
 
     .toast-container {
         position: fixed;
-        bottom: 1.5rem;
-        right: 1.5rem;
+        bottom: 90px;
+        left: 50%;
+        transform: translateX(-50%);
         z-index: 9999;
+        width: max-content;
+        max-width: 90vw;
     }
+    .toast { border-radius: 12px; font-size: 0.9rem; }
+
+    /* --- Animações --- */
+    @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+    }
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-14px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes slideUp {
+        from { opacity: 0; transform: translateY(28px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to   { opacity: 1; }
+    }
+    @keyframes cardEnter {
+        from { opacity: 0; transform: translateY(14px) scale(0.97); }
+        to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes islandPop {
+        0%   { opacity: 0; transform: translateX(-50%) translateY(20px) scale(0.88); }
+        70%  { transform: translateX(-50%) translateY(-3px) scale(1.02); }
+        100% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+    }
+    @keyframes badgePop {
+        0%,100% { transform: scale(1); }
+        50%     { transform: scale(1.5); }
+    }
+    .anim-slide-down { animation: slideDown 0.38s cubic-bezier(0.22,1,0.36,1) both; }
+    .anim-slide-up   { animation: slideUp  0.42s cubic-bezier(0.22,1,0.36,1) both; animation-delay: 0.08s; }
+    .anim-fade-in    { animation: fadeIn   0.35s ease both; animation-delay: 0.05s; }
+    #cart-island     { animation: islandPop 0.55s cubic-bezier(0.22,1,0.36,1) 0.15s both; }
 </style>
 
-<body class="bg">
+<body>
 
-<!-- Toast de confirmação -->
 <div class="toast-container">
     <div id="cartToast" class="toast align-items-center text-bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
         <div class="d-flex">
@@ -67,75 +188,73 @@
     </div>
 </div>
 
-<div class="container text-center">
-    <div class="row">
-        <div class="space5"></div>
-        <div class="space15"></div>
-        <div class="">
-            <h1>Bem Vindo <br>ao <span th:text="${store.name}">Nome da Loja</span></h1>
-            <input type="hidden" id="storeIdData" th:value="${currentStoreId}" />
-        </div>
-        <div class="space15"></div>
-        <div class="input-group mb-3">
+<div class="page-header anim-slide-down">
+    <h1>Bem-vindo ao<br><span th:text="${store.name}">Nome da Loja</span></h1>
+    <input type="hidden" id="storeIdData" th:value="${currentStoreId}" />
+</div>
+
+<div class="container px-3 mt-2">
+    <div class="search-bar anim-fade-in">
+        <div class="input-group">
             <button class="btn btn-success rounded-start-5" type="button" id="start-scan-btn" title="Escanear Código de Barras">
                 <i class="bi bi-upc-scan"></i>
             </button>
-            <input type="text" class="form-control" id="searchInput" placeholder="Digite o código ou nome do produto">
-            <button class="btn bg-light rounded-end-5" type="button" id="searchButton"><i class="bi bi-search"></i></button>
+            <input type="text" class="form-control" id="searchInput" placeholder="Buscar produto..." autocomplete="off">
+            <button class="btn bg-light rounded-end-5" type="button" id="searchButton">
+                <i class="bi bi-search"></i>
+            </button>
         </div>
-
         <div id="scanner-ui" class="mt-3" style="display: none;">
             <div id="barcode-scanner-container"></div>
-            <button id="stop-scan-btn" class="btn btn-danger mt-2">Parar Scanner</button>
-        </div>
-        <div id="scan-result-message" class="mt-2"></div>
-
-        <div class="space15"></div>
-
-        <div class="card text-start rounded-top-4">
-            <h5 class="card-header" id="searchSectionTitle">Destaques</h5>
-            <div class="card-body">
-
-                <div class="row row-cols-3" id="highlightedProductsContainer">
-                    <div th:if="${highlightedProducts.empty}" class="col-12 initial-display" th:remove="tag">
-                        <div class="alert alert-info text-center" role="alert">
-                            Nenhum produto em destaque no momento.
-                        </div>
-                    </div>
-
-                    <!-- Cards de destaque (Thymeleaf) -->
-                    <div class="col initial-display" th:each="product : ${highlightedProducts}">
-                        <!-- Card clicável: vai para detalhes ao clicar fora do botão -->
-                        <div class="card h-100 product-card"
-                             th:data-product-url="@{/produto/{productId}(productId=${product.id}, storeId=${product.store.id})}">
-                            <img th:src="${product.imageUrl ?: '/images/placeholder.png'}" class="card-img-top card-img-top-fix" th:alt="${product.name}">
-                            <div class="card-body fw-light d-flex flex-column">
-                                <h5 class="card-title" th:text="${product.name}">Nome Produto</h5>
-                                <p class="card-text" th:text="${product.description} ?: 'Sem descrição.'">Descrição breve</p>
-                                <h6 class="card-subtitle mb-2"
-                                    style="text-decoration: line-through; color: #dc3545;"
-                                    th:if="${product.oldPrice != null && product.oldPrice > 0}"
-                                    th:text="${'R$ ' + #numbers.formatDecimal(product.oldPrice, 1, 2,'COMMA')}"></h6>
-                                <h5 class="fw-bold text-success mt-auto mb-1"
-                                    th:text="${'R$ ' + #numbers.formatDecimal(product.price, 1, 2,'COMMA')}">R$ 0,00</h5>
-                                <!-- Botão Adicionar ao Carrinho -->
-                                <button class="btn btn-success mt-3 btn-add-cart"
-                                        th:data-product-id="${product.id}"
-                                        th:data-product-name="${product.name}"
-                                        th:data-product-price="${product.price}"
-                                        th:data-store-id="${product.store.id}">
-                                    <i class="bi bi-cart-plus me-1"></i> Adicionar
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
+            <div class="d-flex gap-2 mt-2">
+                <button id="stop-scan-btn" class="btn btn-danger flex-fill">
+                    <i class="bi bi-stop-circle"></i> Parar
+                </button>
+                <button id="mirror-scan-btn" class="btn btn-secondary" title="Espelhar câmera" style="min-width:48px; transition: background 0.2s;">
+                    <i class="bi bi-symmetry-horizontal"></i>
+                </button>
             </div>
         </div>
+        <div id="scan-result-message" class="mt-2"></div>
     </div>
 </div>
 
+<div class="container px-3 mt-3" style="flex: 1; display: flex; flex-direction: column;">
+    <div class="products-section anim-slide-up">
+        <p class="section-title" id="searchSectionTitle">Destaques</p>
+        <div class="products-grid" id="highlightedProductsContainer">
+
+            <div th:if="${highlightedProducts.empty}" class="initial-display" th:remove="tag"
+                 style="grid-column: 1 / -1;">
+                <div class="alert alert-info text-center mt-2">Nenhum produto em destaque no momento.</div>
+            </div>
+
+            <div class="initial-display" th:each="product : ${highlightedProducts}">
+                <div class="product-card h-100"
+                     th:data-product-url="@{/produto/{productId}(productId=${product.id}, storeId=${product.store.id})}">
+                    <img th:src="${product.imageUrl ?: '/images/placeholder.png'}" th:alt="${product.name}" loading="lazy">
+                    <div class="product-card-body">
+                        <p class="product-card-title" th:text="${product.name}">Nome</p>
+                        <p class="product-card-desc" th:text="${product.description} ?: ''"></p>
+                        <p class="product-card-old-price"
+                           th:if="${product.oldPrice != null && product.oldPrice > 0}"
+                           th:text="${'R$ ' + #numbers.formatDecimal(product.oldPrice, 1, 2,'COMMA')}"></p>
+                        <p class="product-card-price"
+                           th:text="${'R$ ' + #numbers.formatDecimal(product.price, 1, 2,'COMMA')}">R$ 0,00</p>
+                        <button class="btn btn-success btn-add-cart w-100"
+                                th:data-product-id="${product.id}"
+                                th:data-product-name="${product.name}"
+                                th:data-product-price="${product.price}"
+                                th:data-store-id="${product.store.id}">
+                            <i class="bi bi-cart-plus me-1"></i> Adicionar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-j1CDi7MgGQ12Z7Qab0qlWQ/Qqz24Gc6BM0thvEMVjHnfYGF0rmFCozFSxQBxwHKO"
@@ -145,176 +264,119 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
-        const searchInput = document.getElementById('searchInput');
-        const searchButton = document.getElementById('searchButton');
-        const highlightedProductsContainer = document.getElementById('highlightedProductsContainer');
-        const searchSectionTitle = document.getElementById('searchSectionTitle');
+        const searchInput    = document.getElementById('searchInput');
+        const searchButton   = document.getElementById('searchButton');
+        const container      = document.getElementById('highlightedProductsContainer');
+        const sectionTitle   = document.getElementById('searchSectionTitle');
         const currentStoreId = document.getElementById('storeIdData').value;
-
         let searchTimeout;
 
-        // --- Toast ---
-        const toastEl = document.getElementById('cartToast');
-        const toastMessage = document.getElementById('cartToastMessage');
-        const toast = new bootstrap.Toast(toastEl, { delay: 2500 });
+        const toastEl  = document.getElementById('cartToast');
+        const toastMsg = document.getElementById('cartToastMessage');
+        const toast    = new bootstrap.Toast(toastEl, { delay: 2500 });
 
-        function showToast(productName) {
-            toastMessage.textContent = `"${productName}" adicionado ao carrinho!`;
+        function showToast(name) {
+            toastMsg.textContent = `"${name}" adicionado!`;
             toast.show();
         }
 
-        // --- Função para adicionar ao carrinho via sessionStorage ---
         function addToCart(productId, productName, productPrice, storeId) {
             const cartKey = `cartItems_${storeId}`;
-            let cart = sessionStorage.getItem(cartKey);
-            cart = cart ? JSON.parse(cart) : [];
-
-            const existingIndex = cart.findIndex(item => item.id === String(productId));
-            if (existingIndex > -1) {
-                cart[existingIndex].quantity += 1;
+            let cart = JSON.parse(sessionStorage.getItem(cartKey)) || [];
+            const idx = cart.findIndex(i => i.id === String(productId));
+            if (idx > -1) {
+                cart[idx].quantity += 1;
             } else {
-                cart.push({
-                    id: String(productId),
-                    name: productName,
-                    price: parseFloat(productPrice),
-                    quantity: 1,
-                    storeId: String(storeId)
-                });
+                cart.push({ id: String(productId), name: productName, price: parseFloat(productPrice), quantity: 1, storeId: String(storeId) });
             }
             sessionStorage.setItem(cartKey, JSON.stringify(cart));
             showToast(productName);
             if (window.updateIslandBadge) window.updateIslandBadge();
         }
 
-        // --- Delegação de eventos para cards e botões (funciona para os renderizados dinamicamente) ---
-        highlightedProductsContainer.addEventListener('click', (e) => {
+        container.addEventListener('click', (e) => {
             const btn = e.target.closest('.btn-add-cart');
             if (btn) {
-                // Clique no botão → adiciona ao carrinho
                 e.stopPropagation();
-                addToCart(
-                    btn.dataset.productId,
-                    btn.dataset.productName,
-                    btn.dataset.productPrice,
-                    btn.dataset.storeId
-                );
+                addToCart(btn.dataset.productId, btn.dataset.productName, btn.dataset.productPrice, btn.dataset.storeId);
                 return;
             }
-
-            // Clique no card (fora do botão) → vai para detalhes
             const card = e.target.closest('.product-card');
-            if (card && card.dataset.productUrl) {
-                window.location.href = card.dataset.productUrl;
-            }
+            if (card?.dataset.productUrl) window.location.href = card.dataset.productUrl;
         });
 
-        // --- Renderiza produtos da busca dinâmica ---
-        const renderProducts = (products) => {
-            let productsHtml = '';
+        function renderProducts(products) {
             if (products.length === 0) {
-                productsHtml = `
-                    <div class="col-12">
-                        <div class="alert alert-info text-center" role="alert">
-                            Nenhum produto encontrado com este termo.
-                        </div>
-                    </div>`;
-            } else {
-                products.forEach(product => {
-                    const imageUrl = product.imageUrl || '/images/placeholder.png';
-                    const description = product.description || 'Sem descrição.';
-                    const priceFormatted = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(product.price).replace('.', ',');
-                    let oldPriceHtml = '';
-                    if (product.oldPrice && product.oldPrice > 0) {
-                        const oldPriceFormatted = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(product.oldPrice).replace('.', ',');
-                        oldPriceHtml = `<h6 class="card-subtitle mb-2" style="text-decoration: line-through; color: #dc3545;">R$ ${oldPriceFormatted}</h6>`;
-                    }
-
-                    productsHtml += `
-                        <div class="col">
-                            <div class="card h-100 product-card"
-                                 data-product-url="/produto/${product.id}?storeId=${product.store.id}">
-                                <img src="${imageUrl}" class="card-img-top card-img-top-fix" alt="${product.name}">
-                                <div class="card-body fw-light d-flex flex-column">
-                                    <h5 class="card-title">${product.name}</h5>
-                                    <p class="card-text">${description}</p>
-                                    ${oldPriceHtml}
-                                    <h5 class="fw-bold text-success mt-auto mb-1">R$ ${priceFormatted}</h5>
-                                    <button class="btn btn-success mt-3 btn-add-cart"
-                                            data-product-id="${product.id}"
-                                            data-product-name="${product.name}"
-                                            data-product-price="${product.price}"
-                                            data-store-id="${product.store.id}">
-                                        <i class="bi bi-cart-plus me-1"></i> Adicionar
-                                    </button>
-                                </div>
-                            </div>
-                        </div>`;
-                });
-            }
-            highlightedProductsContainer.innerHTML = productsHtml;
-        };
-
-        const loadOriginalHighlights = () => {
-            searchSectionTitle.textContent = 'Destaques';
-            window.location.reload();
-        };
-
-        const performLiveSearch = async () => {
-            const searchTerm = searchInput.value.trim();
-
-            if (searchTerm.length === 0) {
-                loadOriginalHighlights();
+                container.innerHTML = `<div style="grid-column:1/-1"><div class="alert alert-info text-center">Nenhum produto encontrado.</div></div>`;
                 return;
             }
-
-            searchSectionTitle.textContent = 'Busca';
-
-            try {
-                document.querySelectorAll('.initial-display').forEach(el => el.remove());
-
-                const response = await fetch(`/products/search?name=${encodeURIComponent(searchTerm)}&storeId=${currentStoreId}`);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                const data = await response.json();
-                renderProducts(data);
-            } catch (error) {
-                console.error('Erro ao buscar produtos:', error);
-                searchSectionTitle.textContent = 'Erro na Busca';
-                highlightedProductsContainer.innerHTML = `
-                    <div class="col-12">
-                        <div class="alert alert-danger text-center" role="alert">
-                            Erro ao carregar produtos. Tente novamente.
+            container.innerHTML = products.map(p => {
+                const price = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2 }).format(p.price);
+                const oldPriceHtml = p.oldPrice > 0
+                    ? `<p class="product-card-old-price">R$ ${new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2 }).format(p.oldPrice)}</p>` : '';
+                return `
+                    <div>
+                        <div class="product-card h-100" data-product-url="/produto/${p.id}?storeId=${p.store.id}">
+                            <img src="${p.imageUrl || '/images/placeholder.png'}" alt="${p.name}" loading="lazy">
+                            <div class="product-card-body">
+                                <p class="product-card-title">${p.name}</p>
+                                <p class="product-card-desc">${p.description || ''}</p>
+                                ${oldPriceHtml}
+                                <p class="product-card-price">R$ ${price}</p>
+                                <button class="btn btn-success btn-add-cart w-100"
+                                    data-product-id="${p.id}" data-product-name="${p.name}"
+                                    data-product-price="${p.price}" data-store-id="${p.store.id}">
+                                    <i class="bi bi-cart-plus me-1"></i> Adicionar
+                                </button>
+                            </div>
                         </div>
                     </div>`;
+            }).join('');
+        }
+
+        async function performSearch() {
+            const term = searchInput.value.trim();
+            if (!term) { window.location.reload(); return; }
+            sectionTitle.textContent = 'Busca';
+            document.querySelectorAll('.initial-display').forEach(el => el.remove());
+            try {
+                const res = await fetch(`/products/search?name=${encodeURIComponent(term)}&storeId=${currentStoreId}`);
+                renderProducts(await res.json());
+            } catch {
+                container.innerHTML = `<div style="grid-column:1/-1"><div class="alert alert-danger text-center">Erro ao buscar. Tente novamente.</div></div>`;
             }
-        };
+        }
 
         searchInput.addEventListener('input', () => {
             clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-                performLiveSearch();
-            }, 300);
+            searchTimeout = setTimeout(performSearch, 300);
         });
-
-        searchButton.addEventListener('click', () => {
-            clearTimeout(searchTimeout);
-            const searchTerm = searchInput.value.trim();
-            if (searchTerm.length > 0) {
-                window.location.href = `/${currentStoreId}/search?name=${encodeURIComponent(searchTerm)}`;
-            } else {
-                loadOriginalHighlights();
-            }
-        });
-
-        searchInput.addEventListener('keypress', (event) => {
-            if (event.key === 'Enter') {
-                searchButton.click();
-            }
-        });
+        searchButton.addEventListener('click', performSearch);
+        searchInput.addEventListener('keypress', e => { if (e.key === 'Enter') performSearch(); });
     });
 </script>
-<!-- Ilha de navegação inferior -->
+
+
+<script>
+    // Stagger de entrada nos cards
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.product-card').forEach((card, i) => {
+            card.style.animation = `cardEnter 0.38s cubic-bezier(0.22,1,0.36,1) ${0.05 + i * 0.06}s both`;
+        });
+        // Badge pop ao atualizar
+        const origUpdate = window.updateIslandBadge;
+        window.updateIslandBadge = function() {
+            if (origUpdate) origUpdate();
+            const badge = document.getElementById('island-cart-badge');
+            if (badge && badge.style.display !== 'none') {
+                badge.style.animation = 'none';
+                badge.offsetHeight;
+                badge.style.animation = 'badgePop 0.3s ease';
+            }
+        };
+    });
+</script>
+
 <div th:replace="~{_cartIsland :: island(storeId=${currentStoreId}, activePage='home')}"></div>
 
 </body>

@@ -19,7 +19,10 @@
 <div class="container my-5">
     <div class="d-flex justify-content-between align-items-center mb-4 gap-2 flex-wrap">
         <h1 class="mb-0">Seus Produtos</h1>
-        <div class="d-flex gap-2">
+        <div class="d-flex gap-2 flex-wrap">
+            <button id="copyStoreBtn" class="btn btn-outline-light" title="Copiar link da loja para clientes">
+                <i class="bi bi-share"></i> Copiar link da loja
+            </button>
             <a href="/lojistaNovoProduto.html" class="btn btn-primary">
                 <i class="bi bi-plus-circle-fill"></i> Adicionar Novo Produto
             </a>
@@ -68,6 +71,31 @@
         document.getElementById('logoutBtn').addEventListener('click', () => {
             localStorage.removeItem('loggedInStoreId');
             window.location.href = '/lojistaLogin.html';
+        });
+
+        document.getElementById('copyStoreBtn').addEventListener('click', () => {
+            const url = `${window.location.origin}/${storeId}/`;
+            const btn = document.getElementById('copyStoreBtn');
+            const original = btn.innerHTML;
+            const finish = () => {
+                btn.innerHTML = '<i class="bi bi-check-lg"></i> Link copiado!';
+                setTimeout(() => { btn.innerHTML = original; }, 2000);
+            };
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(url).then(finish).catch(() => {
+                    const el = document.createElement('textarea');
+                    el.value = url; el.style.position = 'fixed'; el.style.opacity = '0';
+                    document.body.appendChild(el); el.select();
+                    document.execCommand('copy'); document.body.removeChild(el);
+                    finish();
+                });
+            } else {
+                const el = document.createElement('textarea');
+                el.value = url; el.style.position = 'fixed'; el.style.opacity = '0';
+                document.body.appendChild(el); el.select();
+                document.execCommand('copy'); document.body.removeChild(el);
+                finish();
+            }
         });
 
         // ---- Auth guard ----

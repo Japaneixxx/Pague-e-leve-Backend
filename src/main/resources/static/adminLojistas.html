@@ -389,9 +389,14 @@
 <!-- Topbar -->
 <div class="topbar">
     <h1 class="topbar-title"><i class="bi bi-shield-lock-fill"></i> Admin <span>Lojistas</span></h1>
-    <button class="btn-new" onclick="openDrawer()">
-        <i class="bi bi-plus-lg"></i> Novo
-    </button>
+    <div style="display:flex; gap:0.5rem;">
+        <button class="btn-icon" id="btnCopyLink" title="Copiar link de login do lojista" onclick="copyLoginLink()" style="width:auto; padding: 0.5rem 0.85rem; gap:0.35rem; font-size:0.82rem; font-weight:600; display:flex; align-items:center;">
+            <i class="bi bi-link-45deg"></i> Link login
+        </button>
+        <button class="btn-new" onclick="openDrawer()">
+            <i class="bi bi-plus-lg"></i> Novo
+        </button>
+    </div>
 </div>
 
 <!-- Lista -->
@@ -493,30 +498,11 @@
                     </div>
                 </div>
                 <div class="store-actions">
-                    <button class="btn-icon" title="Copiar link da loja" onclick="copyStoreUrl(${s.id})"><i class="bi bi-link-45deg"></i></button>
+                    <button class="btn-icon" title="Copiar link da loja" onclick="copyStoreLink(${s.id})"><i class="bi bi-share"></i></button>
                     <button class="btn-icon" title="Editar" onclick="openEdit(${s.id})"><i class="bi bi-pencil"></i></button>
                     <button class="btn-icon danger" title="Remover" onclick="confirmDelete(${s.id}, '${s.name.replace(/'/g,"\\'")}')"><i class="bi bi-trash"></i></button>
                 </div>
             </div>`).join('');
-    }
-
-    // ---- Copiar URL da loja ----
-    function copyStoreUrl(id) {
-        const url = `${window.location.origin}/${id}/`;
-        navigator.clipboard.writeText(url)
-            .then(() => toast('Link copiado!'))
-            .catch(() => {
-                // Fallback para navegadores sem clipboard API
-                const ta = document.createElement('textarea');
-                ta.value = url;
-                ta.style.position = 'fixed';
-                ta.style.opacity = '0';
-                document.body.appendChild(ta);
-                ta.select();
-                document.execCommand('copy');
-                document.body.removeChild(ta);
-                toast('Link copiado!');
-            });
     }
 
     // ---- Load ----
@@ -649,6 +635,47 @@
 
     // Init
     loadStores();
+
+    // ---- Copiar link de login ----
+    window.copyLoginLink = function() {
+        const url = `${window.location.origin}/lojistaLogin.html`;
+        const btn = document.getElementById('btnCopyLink');
+        const original = btn.innerHTML;
+
+        const finish = () => {
+            toast('Link copiado!');
+            btn.innerHTML = '<i class="bi bi-check-lg"></i> Copiado!';
+            setTimeout(() => { btn.innerHTML = original; }, 2000);
+        };
+
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(url).then(finish).catch(() => fallback(url, finish));
+        } else {
+            fallback(url, finish);
+        }
+    };
+
+    // ---- Copiar link da loja cliente ----
+    window.copyStoreLink = function(storeId) {
+        const url = `${window.location.origin}/${storeId}/`;
+        const finish = () => toast('Link da loja copiado!');
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(url).then(finish).catch(() => fallback(url, finish));
+        } else {
+            fallback(url, finish);
+        }
+    };
+
+    function fallback(url, cb) {
+        const el = document.createElement('textarea');
+        el.value = url;
+        el.style.position = 'fixed'; el.style.opacity = '0';
+        document.body.appendChild(el);
+        el.select();
+        document.execCommand('copy');
+        document.body.removeChild(el);
+        cb();
+    }
 </script>
 </body>
 </html>

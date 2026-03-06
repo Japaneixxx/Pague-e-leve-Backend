@@ -185,10 +185,11 @@
             });
         }
 
-        fetch('/api/categories').then(r => r.json()).then(cats => {
-            cats?.forEach(name => {
+        const currentStoreId = document.getElementById('storeIdData').value;
+        fetch(`/api/categories/${currentStoreId}`).then(r => r.json()).then(cats => {
+            cats?.forEach(cat => {
                 const opt = document.createElement('option');
-                opt.value = name; opt.textContent = name;
+                opt.value = cat.name; opt.textContent = cat.name;
                 categorySelect.appendChild(opt);
             });
         }).catch(console.error);

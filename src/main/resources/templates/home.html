@@ -188,7 +188,7 @@
 </div>
 
 <div class="page-header anim-slide-down">
-    <h1>Bem-vindo ao<br><span th:text="${store.name}">Nome da Loja</span></h1>
+    <h1>Bem-Vindo ao<br><span th:text="${store.name}">Nome da Loja</span></h1>
     <input type="hidden" id="storeIdData" th:value="${currentStoreId}" />
 </div>
 
@@ -198,7 +198,7 @@
             <button class="btn btn-success rounded-start-5" type="button" id="start-scan-btn" title="Escanear Código de Barras">
                 <i class="bi bi-upc-scan"></i>
             </button>
-            <input type="text" class="form-control" id="searchInput" placeholder="Buscar produto..." autocomplete="off">
+            <input type="text" class="form-control" id="searchInput" placeholder="Buscar produto ou escanear codigo de barras..." autocomplete="off">
             <button class="btn bg-light rounded-end-5" type="button" id="searchButton">
                 <i class="bi bi-search"></i>
             </button>
@@ -245,7 +245,7 @@
                                 th:data-product-name="${product.name}"
                                 th:data-product-price="${product.price}"
                                 th:data-store-id="${product.store.id}">
-                            <i class="bi bi-cart-plus me-1"></i> Adicionar
+                            <i class="bi bi-cart-plus me-1"></i> Adicionar ao Carrinho
                         </button>
                     </div>
                 </div>

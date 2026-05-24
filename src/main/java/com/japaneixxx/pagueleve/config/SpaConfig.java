@@ -28,11 +28,11 @@ public class SpaConfig implements WebMvcConfigurer {
 
     // Prefixos que pertencem ao backend — NÃO devem cair no fallback SPA
     private static final String[] API_PREFIXES = {
-        "api/",
-        "lojista/produto/",
-        "produto/",
-        "products/",
-        "actuator/",
+            "api/",
+            "lojista/produto/",
+            "produto/",
+            "products/",
+            "actuator/",
     };
 
     @Override

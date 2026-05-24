@@ -78,8 +78,8 @@ public class StoreApiController {
                             .body("Produto ID " + productId + " não encontrado ou inativo.");
 
                 total = total.add(
-                    BigDecimal.valueOf(productOpt.get().getPrice())
-                              .multiply(BigDecimal.valueOf(quantity))
+                        BigDecimal.valueOf(productOpt.get().getPrice())
+                                .multiply(BigDecimal.valueOf(quantity))
                 );
             } catch (Exception e) {
                 log.warn("Item inválido no checkout da loja {}: {}", storeId, item, e);

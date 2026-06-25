@@ -1,43 +1,41 @@
 # =================================================================
 # STAGE 1: O "Construtor" (Builder)
-# Usamos uma imagem oficial que já contém o JDK 17 e o Maven.
+# Agora usando explicitamente a versão 21 do JDK
 # =================================================================
 FROM eclipse-temurin:21-jdk-alpine AS builder
 
 WORKDIR /app
 
-# 1. Copia o pom.xml primeiro.
-#    Isso otimiza o cache do Docker: se o pom.xml não mudar,
-#    o Docker reutiliza a camada de dependências já baixadas.
+# Copia os arquivos de configuração do Maven
 COPY pom.xml .
+COPY .mvn .mvn
+COPY mvnw .
 
-# 2. Baixa todas as dependências do projeto.
-#    O Maven agora buscará sua biblioteca diretamente do JitPack.
-#    O cache mount acelera builds futuros.
+# Garante permissão de execução ao Maven Wrapper
+RUN chmod +x mvnw
+
+# Baixa as dependências (isso evita baixar tudo a cada build)
 RUN --mount=type=cache,target=/root/.m2 \
-    mvn dependency:go-offline
+    ./mvnw dependency:go-offline
 
-# 3. Copia o resto do código-fonte da sua aplicação.
+# Copia o código-fonte
 COPY src ./src
 
-# 4. Compila, testa e empacota a aplicação em um .jar executável.
+# Compila e empacota a aplicação
 RUN --mount=type=cache,target=/root/.m2 \
-    mvn package -DskipTests
+    ./mvnw package -DskipTests
 
 # =================================================================
 # STAGE 2: A Imagem Final (Runner)
-# Usamos uma imagem base leve, que contém apenas o Java Runtime (JRE).
+# Também em Java 21 para manter a compatibilidade
 # =================================================================
-FROM eclipse-temurin:17-jre-jammy
+FROM eclipse-temurin:21-jre-alpine
 
 WORKDIR /app
 
-# Copia APENAS o .jar final que foi gerado no estágio 'builder'.
-# Isso torna a imagem final pequena e limpa.
-COPY --from=builder /app/target/pagueleve-0.0.1-SNAPSHOT.jar app.jar
+# Copia apenas o .jar gerado no estágio anterior
+COPY --from=builder /app/target/*.jar app.jar
 
-# Expõe a porta que a sua aplicação Spring Boot usa (padrão é 8080)
 EXPOSE 8080
 
-# Comando para iniciar a sua aplicação quando o container for executado.
 ENTRYPOINT ["java", "-jar", "app.jar"]

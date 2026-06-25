@@ -15,7 +15,8 @@ public class CorsConfig implements WebMvcConfigurer {
                         "http://teste.japaneixxx.xyz", // Seu frontend (seja HTTP ou HTTPS, dependendo do ambiente)
                         "https://teste.japaneixxx.xyz", // Adicione a versão HTTPS do seu frontend
                         "https://back.japaneixxx.xyz", // O próprio domínio do backend (bom para auto-requisições ou verificações)
-                        "https://seu-servico.onrender.com" // O domínio padrão do Render para o backend (ajuste para o seu)
+                        "https://seu-servico.onrender.com", // O domínio padrão do Render para o backend (ajuste para o seu)
+                        "https://site-pague-e-leve.vercel.app"
                 )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS") // Permite métodos HTTP específicos
                 .allowedHeaders("*") // Permite todos os cabeçalhos

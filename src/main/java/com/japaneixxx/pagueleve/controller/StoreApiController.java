@@ -47,7 +47,7 @@ public class StoreApiController {
     }
 
     // ── POST /{storeId}/api/checkout ─────────────────────────────────────────────
-    @PostMapping("/{storeId}/api/checkout")
+    @PostMapping("api/stores/{storeId}/checkout")
     public ResponseEntity<?> checkoutApi(
             @PathVariable Long storeId,
             @RequestBody List<Map<String, Object>> items) {

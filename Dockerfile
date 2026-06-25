@@ -2,7 +2,7 @@
 # STAGE 1: O "Construtor" (Builder)
 # Usamos uma imagem oficial que já contém o JDK 17 e o Maven.
 # =================================================================
-FROM maven:3.9-eclipse-temurin-17 AS builder
+FROM eclipse-temurin:21-jdk-alpine AS builder
 
 WORKDIR /app
 
